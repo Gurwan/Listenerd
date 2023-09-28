@@ -1,0 +1,22 @@
+{
+  "name": "listenerd",
+  "version": "1.0.0",
+  "description": "tu dublin web app architectures project which aims to be an album music library",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gurwan/Listenerd.git"
+  },
+  "author": "Gurwan DELAUNAY",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Gurwan/Listenerd/issues"
+  },
+  "homepage": "https://github.com/Gurwan/Listenerd#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
