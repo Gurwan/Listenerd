@@ -31,9 +31,9 @@ const albumSchema = new mongoose.Schema({
   popularity: {
     type: Number,
   },
-  artistes: [{
+  artists: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Artiste',
+    ref: 'Artist',
   }],
   cover: [coverMongooseSchema]
 });
