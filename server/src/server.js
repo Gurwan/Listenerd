@@ -3,9 +3,10 @@ const { MongoClient, ServerApiVersion } = require('mongodb');
 const app = express();
 const port = 3001;
 
-
+//I could use a environment variable to store the password with the npm module dotenv but it's testing so no needs.
 const uri = "mongodb+srv://listenerd_test:wKSMDtg283ojJncG@cluster0.zcloy3n.mongodb.net/?retryWrites=true&w=majority";
 
+//The code between line 10 and 31 is provided by the website cloud.mongodb.com to implement MongoDB Atlas and have an online database
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
