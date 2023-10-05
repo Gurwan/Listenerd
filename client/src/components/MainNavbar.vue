@@ -1,10 +1,10 @@
 <template>
   <nav>
-    <a>href="#">Home</a>
+    <a href="#">Home</a>
     <div>
       <ul>
         <li>
-          <a>>href="#">Search</a>
+          <a href="#">Search</a>
         </li>
         <li>
           <a href="#">Login</a>
