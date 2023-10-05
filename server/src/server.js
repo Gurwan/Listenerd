@@ -52,9 +52,37 @@ app.get('/discogs-search', async (req, res) => {
   }
 });
 
-app.get('/', (req, res) => {
+app.get('/discogs-main', (req, res) => {
   var db = discogsAPI.database();
-  db.getRelease(176126, function(err, data){
+  db.search ("", function(err, data){
+    res.send(data);
+  });
+});
+
+app.get('/discogs-search', (req, res) => {
+  var db = discogsAPI.database();
+  db.search (req.body, function(err, data){
+    res.send(data);
+  });
+});
+
+app.get('/discogs-album', (req, res) => {
+  var db = discogsAPI.database();
+  db.getRelease (req.body.albumId, function(err, data){
+    res.send(data);
+  });
+});
+
+app.get('/discogs-artist', (req, res) => {
+  var db = discogsAPI.database();
+  db.getArtist (req.body.artistId, function(err, data){
+    res.send(data);
+  });
+});
+
+app.get('/discogs-artist-albums', (req, res) => {
+  var db = discogsAPI.database();
+  db.getArtistReleases(req.body.artistId, function(err, data){
     res.send(data);
   });
 });
