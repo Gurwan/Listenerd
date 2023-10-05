@@ -2,9 +2,10 @@
   "name": "listenerd",
   "version": "1.0.0",
   "description": "tu dublin web app architectures project which aims to be an album music library",
-  "main": "index.js",
+  "main": "server/src/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "concurrently \"cd client && npm run serve\" \"nodemon server/src/server.js\""
   },
   "repository": {
     "type": "git",
@@ -17,8 +18,10 @@
   },
   "homepage": "https://github.com/Gurwan/Listenerd#readme",
   "dependencies": {
+    "concurrently": "^8.2.1",
     "express": "^4.18.2",
     "mongodb": "^6.1.0",
-    "mongoose": "^7.5.3"
+    "mongoose": "^7.5.3",
+    "nodemon": "^3.0.1"
   }
 }
