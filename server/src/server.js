@@ -1,4 +1,8 @@
 const express = require('express');
+const axios = require('axios');
+const config = require('../../config/config') 
+//npm client library for Discogs.com (Music database API)
+const Discogs = require('disconnect').Client;
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const app = express();
 const port = 3001;
@@ -7,13 +11,17 @@ const port = 3001;
 const uri = "mongodb+srv://listenerd_test:wKSMDtg283ojJncG@cluster0.zcloy3n.mongodb.net/?retryWrites=true&w=majority";
 
 //The code between line 10 and 31 is provided by the website cloud.mongodb.com to implement MongoDB Atlas and have an online database
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
   }
+});
+
+const discogsAPI = new Discogs({
+	consumerKey: `${config.discogs.consumerKey}`, 
+	consumerSecret: `${config.discogs.consumerSecret}`
 });
 
 async function run() {
@@ -31,8 +39,24 @@ async function run() {
 run().catch(console.dir);
 
 
+app.get('/discogs-search', async (req, res) => {
+  try {
+    const response = await axios.get('https://api.discogs.com/v2/...', {
+      headers: {
+        Authorization: `Discogs token=${config.get('discogsApiKey')}`,
+      },
+    });
+    res.json(response.data);
+  } catch (error) {
+    res.status(500).json({ error: 'Erreur lors de la requête Discogs' });
+  }
+});
+
 app.get('/', (req, res) => {
-  res.send('root');
+  var db = discogsAPI.database();
+  db.getRelease(176126, function(err, data){
+    res.send(data);
+  });
 });
 
 app.listen(port, () => {
