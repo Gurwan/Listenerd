@@ -1,11 +1,14 @@
 const express = require('express');
 const axios = require('axios');
 const config = require('../../config/config') 
+const cors = require('cors'); 
 //npm client library for Discogs.com (Music database API)
 const Discogs = require('disconnect').Client;
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const app = express();
 const port = 3001;
+
+app.use(cors());
 
 //I could use a environment variable to store the password with the npm module dotenv but it's testing so no needs.
 const uri = "mongodb+srv://listenerd_test:wKSMDtg283ojJncG@cluster0.zcloy3n.mongodb.net/?retryWrites=true&w=majority";
@@ -86,6 +89,28 @@ app.get('/discogs-artist-albums', (req, res) => {
     res.send(data);
   });
 });
+
+app.get('/discogs-trends', (req, res) => {
+  var db = discogsAPI.database();
+  db.search ({country: "France", year: "2023", type:"release", style: ["Rap"], per_page: "300"})
+  .then(function (searchResult) {
+
+    if (searchResult.results.length > 0) {
+        i = 0
+        arrayAlbum = []
+        while(i<searchResult.results.length){
+          arrayAlbum.push([searchResult.results[i].id, searchResult.results[i].title, searchResult.results[i].cover_image]);
+          i = i+1
+        }
+        res.send(arrayAlbum)
+    }
+    else
+        console.log("No album cover was found.")
+
+  });
+});
+
+
 
 app.listen(port, () => {
   console.log(`Server express is running on the port ${port}`);
