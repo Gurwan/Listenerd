@@ -1,13 +1,16 @@
 <template>
   <div>
-    <main-navbar></main-navbar>
-    <div class="grid grid-cols-3 gap-4">
-      <div v-for="imageUrl in imageUrls" :key="imageUrl" class="bg-gray-200 p-4">
-        <img :src="imageUrl" alt="Image" class="max-w-full h-auto">
+    <main-navbar @search-text-changed="searchAlbumsArtists"></main-navbar>
+    <div class="grid grid-cols-6 gap-4">
+      <div v-for="data in albumsValues" :key="data[0]" class="bg-gray-200 p-4 flex flex-col items-center">
+        <img :src="data[3]" alt="Image" class="max-w-full h-auto w-64 md:w-48 lg:w-32 xl:w-24 mb-2 mx-auto"> 
+        <p class="font-bold">{{ data[2] }}</p>
+        <p class="text-gray-600">{{ data[1] }}</p>
       </div>
     </div>
   </div>
 </template>
+
 
 <script>
 import MainNavbar from './components/MainNavbar.vue'
@@ -20,25 +23,33 @@ export default {
   },
   data() {
     return {
-      imageUrls: [],
+      albumsValues: [],
+      searchText: '',
     };
   },
+  methods: {
+    searchAlbumsArtists(searchText) {
+      axios.get(`http://localhost:3001/discogs-search?search=${searchText}`)
+        .then((response) => this.refreshData(response))
+        .catch(error => {
+          console.error('API request error :', error);
+        });
+    },
+    refreshData(response) {
+      const allData = response.data;
+      if (Array.isArray(allData) && allData.length > 0) {
+        this.albumsValues = allData;
+      } else {
+        console.error('API data error');
+      }
+    }
+  },
   mounted() {
-    // Faites une requête GET à votre API Express
     axios.get('http://localhost:3001/discogs-trends')
-      .then(response => {
-        // Récupérez les données renvoyées par l'API
-        const allData = response.data;
-        if (Array.isArray(allData) && allData.length > 0) {
-          const imageUrls = allData.map(data => data[2]);
-          this.imageUrls = imageUrls;
-        } else {
-          console.error('Données de l\'API incorrectes');
-        }
-      })
-      .catch(error => {
-        console.error('Erreur lors de la requête à l\'API :', error);
-      });
+    .then((response) => this.refreshData(response))
+    .catch(error => {
+          console.error('API request error :', error);
+        });
   },
 }
 </script>
@@ -50,6 +61,6 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+  margin-top: 0px;
 }
 </style>
