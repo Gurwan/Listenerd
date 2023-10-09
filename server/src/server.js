@@ -13,7 +13,7 @@ app.use(cors());
 //I could use a environment variable to store the password with the npm module dotenv but it's testing so no needs.
 const uri = "mongodb+srv://listenerd_test:wKSMDtg283ojJncG@cluster0.zcloy3n.mongodb.net/?retryWrites=true&w=majority";
 
-//The code between line 10 and 31 is provided by the website cloud.mongodb.com to implement MongoDB Atlas and have an online database
+//The code between line 10 and 42 is provided by the website cloud.mongodb.com to implement MongoDB Atlas and have an online database
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -29,7 +29,7 @@ const discogsAPI = new Discogs({
 
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
+    // Connect the client to the server
     await client.connect();
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
@@ -42,19 +42,6 @@ async function run() {
 run().catch(console.dir);
 
 
-app.get('/discogs-search', async (req, res) => {
-  try {
-    const response = await axios.get('https://api.discogs.com/v2/...', {
-      headers: {
-        Authorization: `Discogs token=${config.get('discogsApiKey')}`,
-      },
-    });
-    res.json(response.data);
-  } catch (error) {
-    res.status(500).json({ error: 'Erreur lors de la requête Discogs' });
-  }
-});
-
 app.get('/discogs-main', (req, res) => {
   var db = discogsAPI.database();
   db.search ("", function(err, data){
@@ -62,24 +49,80 @@ app.get('/discogs-main', (req, res) => {
   });
 });
 
+//to separate name of artist and album
+const regexArtistAlbum = /(.+?)(?:\s+\(\d+\))? - (.+)/;
+
 app.get('/discogs-search', (req, res) => {
   var db = discogsAPI.database();
-  db.search (req.body, function(err, data){
-    res.send(data);
+  db.search ({artist: req.query.search, per_page: "30", page: "1", type: "release"})
+  .then(function (searchResult) {
+    if (searchResult.results.length > 0) {
+        i = 0
+        arrayAlbum = []
+        while(i<searchResult.results.length){
+          let matchArtistAlbum = searchResult.results[i].title.match(regexArtistAlbum);
+          let cover = "https://cdn-icons-png.flaticon.com/512/16/16096.png"
+          if(searchResult.results[i].cover_image != undefined && searchResult.results[i].cover_image != null && searchResult.results[i].cover_image != "https://st.discogs.com/455614591780dfa702b27aca035dd230e612f723/images/spacer.gif"){
+            cover = searchResult.results[i].cover_image
+          }
+          arrayAlbum.push([searchResult.results[i].id, matchArtistAlbum[1].trim(), matchArtistAlbum[2].trim(), cover,
+          searchResult.results[i].year]);
+          i = i+1
+        }
+        res.send(arrayAlbum)
+    } else {
+      console.log("No album was found.")
+    }
+    });
+});
+
+app.get('/discogs-trends', (req, res) => {
+  var db = discogsAPI.database();
+  //filter to test 
+  db.search ({country: "France", year: "2023", type:"release", style: ["Rap"], per_page: "300"})
+  .then(function (searchResult) {
+
+    if (searchResult.results.length > 0) {
+        i = 0
+        arrayAlbum = []
+        while(i<searchResult.results.length){
+          let matchArtistAlbum = searchResult.results[i].title.match(regexArtistAlbum);
+          let cover = "https://cdn-icons-png.flaticon.com/512/16/16096.png"
+          if(searchResult.results[i].cover_image != undefined && searchResult.results[i].cover_image != null && searchResult.results[i].cover_image != "https://st.discogs.com/455614591780dfa702b27aca035dd230e612f723/images/spacer.gif"){
+            cover = searchResult.results[i].cover_image
+          }
+          arrayAlbum.push([searchResult.results[i].id, matchArtistAlbum[1].trim(), matchArtistAlbum[2].trim(), cover,
+          searchResult.results[i].year]);
+          i = i+1
+        }
+        res.send(arrayAlbum)
+    } else {
+      console.log("No album was found.")
+
+    }
   });
 });
 
 app.get('/discogs-album', (req, res) => {
   var db = discogsAPI.database();
-  db.getRelease (req.body.albumId, function(err, data){
-    res.send(data);
+  db.getRelease (req.query.albumId, function(err, data){
+    let cover = "https://cdn-icons-png.flaticon.com/512/16/16096.png"
+    if(data.images != undefined && data.images != null){
+      cover = data.images[0].uri
+    }
+    let nameOfArtist = data.artists[0].name.replace(/\s*\([^)]*\)\s*/, '');
+    //id, title, name of artist, image cover, year, id of artist, name of label (add condition), main genre, tracklist
+    albumData = [data.id,data.title,nameOfArtist,cover,data.year,data.artists[0].id,data.labels[0].name,data.genres[0], data.tracklist];
+    res.send(albumData);
   });
 });
 
 app.get('/discogs-artist', (req, res) => {
   var db = discogsAPI.database();
-  db.getArtist (req.body.artistId, function(err, data){
-    res.send(data);
+  db.getArtist (req.query.artistId, function(err, data){
+    let nameOfArtist = data.name.replace(/\s*\([^)]*\)\s*/, '');
+    artistData = [data.id,nameOfArtist,data.images[0].uri,data.profile];
+    res.send(artistData);
   });
 });
 
@@ -89,28 +132,6 @@ app.get('/discogs-artist-albums', (req, res) => {
     res.send(data);
   });
 });
-
-app.get('/discogs-trends', (req, res) => {
-  var db = discogsAPI.database();
-  db.search ({country: "France", year: "2023", type:"release", style: ["Rap"], per_page: "300"})
-  .then(function (searchResult) {
-
-    if (searchResult.results.length > 0) {
-        i = 0
-        arrayAlbum = []
-        while(i<searchResult.results.length){
-          arrayAlbum.push([searchResult.results[i].id, searchResult.results[i].title, searchResult.results[i].cover_image]);
-          i = i+1
-        }
-        res.send(arrayAlbum)
-    }
-    else
-        console.log("No album cover was found.")
-
-  });
-});
-
-
 
 app.listen(port, () => {
   console.log(`Server express is running on the port ${port}`);
