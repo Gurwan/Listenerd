@@ -117,7 +117,11 @@ app.get('/discogs-artist', (req, res) => {
   var db = discogs.database();
   db.getArtist (req.query.artistId, function(err, data){
     let nameOfArtist = data.name.replace(/\s*\([^)]*\)\s*/, '');
-    artistData = [data.id,nameOfArtist,data.images[0].uri,data.profile];
+    let cover = null;
+    if(data.images != null){
+      cover = data.images[0].uri;
+    }
+    artistData = [data.id,nameOfArtist,cover,data.profile];
     res.send(artistData);
   });
 });
