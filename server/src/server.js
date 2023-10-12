@@ -121,7 +121,9 @@ app.get('/discogs-artist', (req, res) => {
     if(data.images != null){
       cover = data.images[0].uri;
     }
-    artistData = [data.id,nameOfArtist,cover,data.profile];
+    //Line of code found on https://stackoverflow.com/questions/4550237/how-to-crop-a-string-which-is-exceeding-the-element-length
+    let description = data.profile.length > 150 ? data.profile.substring(0,150) + "..." : data.profile; 
+    artistData = [data.id,nameOfArtist,cover,description];
     res.send(artistData);
   });
 });

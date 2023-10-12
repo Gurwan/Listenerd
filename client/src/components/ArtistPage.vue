@@ -1,20 +1,19 @@
 <template>
-        <div class="flex">
-        <div class="flex items-center justify-center w-1/2 h-screen">
-          <sync-loader v-if="!artistData.length" :loading="loading" :color="color" :size="size"></sync-loader>
-          <div v-else>
-              <img :src="artistData[2]" alt="Artist picture" class="w-96 h-96 rounded-full mb-4">
-              <h1 class="text-2xl font-bold">{{ artistData[1] }}</h1> 
-              <p class="text-lg">{{ artistData[3] }}</p> 
-              <div class="items-center justify-center" id="spotifyPlayerDiv"></div>
-          </div>
-        </div>
-        <div class="flex items-center justify-center w-1/2 h-screen ">
-          <sync-loader v-if="!artistData.length" :loading="loading" :color="color" :size="size"></sync-loader>
-          <div class="grid grid-cols-5 gap-4" id="grid-albums" v-else>
+        <div class="main-div-artist">
+          <div class="artist-side-div">
+            <sync-loader v-if="!artistData.length" :loading="loading" :color="color" :size="size"></sync-loader>
 
+            <div v-else>
+              <div class="artist-details-div">
+                <img :src="artistData[2]" alt="Artist picture" class="artist_picture">
+                <h1 class="text-2xl font-bold">{{ artistData[1] }}</h1> 
+                <p class="text-lg">{{ artistData[3] }}</p> 
+                <div class="items-center justify-center" id="spotifyPlayerDiv"></div>
+              </div>
+              <div class="albums-grid" id="grid-albums">
+              </div>
+            </div>
           </div>
-        </div>
     </div>
 </template>  
   
@@ -139,7 +138,5 @@ export default {
 </script>
 
 <style scoped>
- #grid-albums {
-  margin-top: 12rem;
- }
+@import '../assets/styles/artist-style.css';
 </style>

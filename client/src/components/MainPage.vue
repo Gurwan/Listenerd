@@ -1,7 +1,7 @@
 <template>
   <div>
     <main-navbar @search-text-changed="searchAlbumsArtists"></main-navbar>
-    <div class="grid grid-cols-5 gap-4">
+    <div class="grid-home">
       <router-link v-for="data in removeDouble" :key="data[0]" :to="'/album/' + data[0]" class="p-4 flex flex-col items-center">
         <img :src="data[3]" alt="Image" class="max-w-full h-auto w-64 md:w-48 lg:w-32 xl:w-24 mb-2 mx-auto"> 
         <p class="font-bold">{{ data[2] }}</p>
@@ -68,6 +68,7 @@ export default {
 </script>
 
 <style>
+@import '../assets/styles/home-style.css';
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
