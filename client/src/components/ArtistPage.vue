@@ -2,12 +2,12 @@
         <div class="main-div-artist">
           <div class="artist-side-div">
             <sync-loader v-if="!artistData.length" :loading="loading" :color="color" :size="size"></sync-loader>
-
             <div v-else>
               <div class="artist-details-div">
                 <img :src="artistData[2]" alt="Artist picture" class="artist_picture">
                 <h1 class="text-2xl font-bold">{{ artistData[1] }}</h1> 
-                <p class="text-lg">{{ artistData[3] }}</p> 
+                <p class="text-lg">{{ artistData[3] }} followers on Spotify and have a popularity of {{artistData[4]}}/100</p> 
+                <p class="text-lg">{{ artistData[5] }}</p>
                 <div class="items-center justify-center" id="spotifyPlayerDiv"></div>
               </div>
               <div class="albums-grid" id="grid-albums">
@@ -33,103 +33,59 @@ export default {
   },
   methods: {
     getArtistData(artistId) {
-      axios.get(`http://localhost:3001/discogs-artist?artistId=${artistId}`)
+      axios.get(`http://localhost:3001/get-artist?artistId=${artistId}`)
         .then(response => {
-          this.artistData = response.data;
-          this.getAccessTokenSpotify();
+          this.artistData = response.data[0];
+          this.loadAllAlbumsOfArtist(response.data[1])
+          this.loadSpotifyPlayer(response.data[2])
         })
         .catch(error => {
           console.error('API error:', error);
         });
     },
-    getAccessTokenSpotify(){
-      axios.get(`http://localhost:3001/get-spotify-access-token`)
-        .then(response => {
-          this.loadSpotifyPlayer(response.data);
-        })
-        .catch(error => {
-          console.error('API error:', error);
-        });
+    loadSpotifyPlayer(trackId){
+      //wait for vuejs rerender the page and the full loading of the data
+      this.$nextTick(() => {
+        const spotifyDiv = document.getElementById('spotifyPlayerDiv');
+        const iframe = document.createElement('iframe');
+        iframe.src = `https://open.spotify.com/embed/track/${trackId}`;
+        spotifyDiv.appendChild(iframe);
+      })
     },
-    loadSpotifyPlayer(accessTokenSpotify) {
-      const artistName = this.artistData[1];
-      axios.get(`https://api.spotify.com/v1/search?q=${artistName}&type=artist`, {
-          headers: {
-            Authorization: `Bearer ${accessTokenSpotify}`,
-          },
-        })
-        .then((response) => {          
-          const artistId = response.data.artists.items[0].id;
-          //we need to provide a country so I put France to test
-          axios.get(`https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=FR`, {
-            headers: {
-              Authorization: `Bearer ${accessTokenSpotify}`,
-            },
-          })
-          .then((response) => {
-            const topTracks = response.data.tracks;
-            this.getRandomTrack(topTracks,accessTokenSpotify);
-          })
-          .catch((error) => {
-            console.error('Spotify API error', error);
-          });
+    loadAllAlbumsOfArtist(albums){
+      this.$nextTick(() => {
+        const gridAlbums = document.getElementById('grid-albums');
+        let i = 0;
+        while(i<albums.length){
+          const albumElement = document.createElement('div');
+          albumElement.classList.add('p-4', 'flex', 'flex-col', 'items-center');
+
+          const cover = document.createElement('img');
+          cover.setAttribute('src', albums[i][3]);
+          cover.setAttribute('alt', 'Image');
+          cover.classList.add('max-w-full', 'h-auto', 'w-64', 'md:w-48', 'lg:w-32', 'xl:w-24', 'mb-2', 'mx-auto');
           
-          this.loadAllAlbumsOfArtist(artistId,accessTokenSpotify);
- 
-        })
-        .catch((error) => {
-          console.error('Spotify API error', error);
-        });
+          const routerLink = document.createElement('a')
+          routerLink.setAttribute("href", "/album/"+ albums[i][0]);
+          const title = document.createElement('p');
+          title.classList.add('font-bold');
+          title.textContent = albums[i][1];
+          routerLink.appendChild(cover);
+          routerLink.appendChild(title);
+
+          const year = document.createElement('p');
+          year.classList.add('text-gray-600');
+          year.textContent = `${this.artistData[1]} - ${albums[i][2]}`;
+
+          albumElement.appendChild(routerLink);
+          albumElement.appendChild(year);
+
+          gridAlbums.appendChild(albumElement);
+          i = i+1
+        }
+      })
     },
-    getRandomTrack(topTracks) {
-      const randomTrack = topTracks[Math.floor(Math.random() * topTracks.length)];
-      const spotifyDiv = document.getElementById('spotifyPlayerDiv');
-      const iframe = document.createElement('iframe');
-      iframe.src = `https://open.spotify.com/embed/track/${randomTrack.id}`;
-      iframe.classList = "w-96 h-48"
-      spotifyDiv.appendChild(iframe);
-    },
-    loadAllAlbumsOfArtist(artistId,accessTokenSpotify){
-      axios.get(`https://api.spotify.com/v1/artists/${artistId}/albums`, {
-               headers: {
-                Authorization: `Bearer ${accessTokenSpotify}`,
-              },
-            })
-            .then((response) => {
-              console.log(response.data)
-              const albums = response.data.items;
-              const gridAlbums = document.getElementById('grid-albums');
-
-              albums.forEach(album => {
-                if(album.album_type != 'single'){
-                  const albumElement = document.createElement('div');
-                  albumElement.classList.add('p-4', 'flex', 'flex-col', 'items-center');
-
-                  const cover = document.createElement('img');
-                  cover.setAttribute('src', album.images[0].url);
-                  cover.setAttribute('alt', 'Image');
-                  cover.classList.add('max-w-full', 'h-auto', 'w-64', 'md:w-48', 'lg:w-32', 'xl:w-24', 'mb-2', 'mx-auto');
-
-                  const title = document.createElement('p');
-                  title.classList.add('font-bold');
-                  title.textContent = album.name;
-
-                  const year = document.createElement('p');
-                  year.classList.add('text-gray-600');
-                  year.textContent = `${this.artistData[1]} - ${album.release_date}`;
-
-                  albumElement.appendChild(cover);
-                  albumElement.appendChild(title);
-                  albumElement.appendChild(year);
-
-                  gridAlbums.appendChild(albumElement);
-                }
-              });
-            })
-            .catch((error) => {
-              console.error('Spotify API error', error);
-            });
-    }
+    
   },
   components: {
     SyncLoader, 

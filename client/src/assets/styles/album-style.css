@@ -1,0 +1,29 @@
+#main-div {
+    display: flex;
+}
+
+#left-side {
+    width: 50%;
+    display: flex;
+}
+
+#right-side {
+    width: 50%;
+    display: flex;
+}
+
+@media (max-width: 1000px) {
+    #main-div {
+        display: block;
+    }
+
+    #left-side {
+        width: 100%;
+        display: block;
+    }
+    
+    #right-side {
+        width: 100%;
+        display: block;
+    }
+}

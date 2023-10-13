@@ -1,8 +1,8 @@
 <template>
   <div>
     <div>
-      <div class="flex">
-        <div class="flex items-center justify-center w-1/2 h-screen">
+      <div id="main-div">
+        <div id="left-side" class="items-center justify-center h-screen">
             <div class="flex w-full h-full items-center justify-center">
                 <scale-loader v-if="!albumData.length" :loading="loading" :color="color" :size="size"></scale-loader>
                 <div v-else>
@@ -20,7 +20,7 @@
                 </div>
             </div>
         </div>
-        <div class="flex items-center justify-center w-1/2 h-screen">
+        <div id="right-side" class="items-center justify-center h-screen">
             <div class="w-full h-full flex items-center justify-center">
               <scale-loader v-if="!albumData.length" :loading="loading" :color="color" :size="size"></scale-loader>
               <div v-else>
@@ -82,3 +82,8 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+@import '../assets/styles/album-style.css';
+</style>
+
