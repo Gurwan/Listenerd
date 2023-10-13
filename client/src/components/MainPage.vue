@@ -28,7 +28,7 @@ export default {
   },
   methods: {
     searchAlbumsArtists(searchText) {
-      axios.get(`http://localhost:3001/discogs-search?search=${searchText}`)
+      axios.get(`http://localhost:3001/search?search=${searchText}`)
         .then((response) => this.refreshData(response))
         .catch(error => {
           console.error('API request error :', error);

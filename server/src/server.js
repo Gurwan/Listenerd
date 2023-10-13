@@ -45,7 +45,7 @@ async function run() {
 run().catch(console.dir);
 
 async function getSpotifyAccessToken(){
-  return 'BQDZnTF1ZLQb7eqhVCn1PCwDHiD5iYalTyLW1YtpGWXVxXPhxAJGgUHSUorbj6o0-aLra1b2gajkIUK5jaIA5YUutcK1bgNbqrOP0bYlnxz-b-n3EhEXI7MfaDjQAjBH2nKCJ7OTiGJmxuf6fuICiuc8JcNkpvm1adbyTibvnoNYofyvacpmFPEJowHKDyHCdJ4'
+  return 'BQDh2vJbyy7Ih5Sjw7Z26RhLMivWAKaPBZ49-PLGF8i8U5pWPBU7XZdoavo07xc_jUUi0J3W3en6efWyooHOG-ss83zOEW9dPVxz0YF29uhIviwGYryNqelQZjXvAcVqlQDbNiTDc96OvGUMdQWumuSCf7yaNJdXEvGWqYNm2eGHU9hzcPgqDq8OwsHstpeQEqw';
   const spotifyInCache = cache.get('spotify_accessToken');
   if(!spotifyInCache){
     console.log("the spotify access token is not available in the cache !")
@@ -130,7 +130,7 @@ app.get('/discogs-main', (req, res) => {
 //to separate name of artist and album
 const regexArtistAlbum = /(.+?)(?:\s+\(\d+\))? - (.+)/;
 
-app.get('/discogs-search', async (req, res) => {
+app.get('/search', async (req, res) => {
   const accessTokenSpotify = await getSpotifyAccessToken();
   axios.get(`https://api.spotify.com/v1/search?q=${req.query.search}&type=album&limit=50`, {
     headers: {
@@ -164,17 +164,22 @@ app.get('/new-releases', async (req, res) => {
 });
 
 
-app.get('/discogs-album', (req, res) => {
-  var db = discogs.database();
-  db.getRelease (req.query.albumId, function(err, data){
-    let cover = "https://cdn-icons-png.flaticon.com/512/16/16096.png"
-    if(data.images != undefined && data.images != null){
-      cover = data.images[0].uri
-    }
-    let nameOfArtist = data.artists[0].name.replace(/\s*\([^)]*\)\s*/, '');
-    //id, title, name of artist, image cover, year, id of artist, name of label (add condition), main genre, tracklist
-    albumData = [data.id,data.title,nameOfArtist,cover,data.year,data.artists[0].id,data.labels[0].name,data.genres[0], data.tracklist];
-    res.send(albumData);
+app.get('/get-album', async (req, res) => {
+  const accessTokenSpotify = await getSpotifyAccessToken();
+  axios.get(`https://api.spotify.com/v1/albums/${req.query.albumId}`, {
+    headers: {
+      Authorization: `Bearer ${accessTokenSpotify}`,
+    },
+  })
+  .then((response) => {
+    const data = response.data
+    artistData = [data.artists[0].id,data.artists[0].name]
+    //id, title, id and name of artist, image cover, year, name of label, main genre, tracklist
+    albumData = [data.id,data.name,artistData,data.images[0].url,data.release_date,data.artist,data.label,data.genres[0], data.tracks.items];
+    res.send(albumData)
+  })
+  .catch((error) => {
+    console.error('Spotify API error', error);
   });
 });
 
