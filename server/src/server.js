@@ -105,6 +105,20 @@ async function getSpotifyAccessToken(){
   }
 }
 
+function formatAlbum(response){
+  const albums = response.data.albums.items
+  let i = 0
+  let arrayAlbum = []
+  while(i < albums.length){
+    //id and name of artist
+    const artistData = [albums[i].artists[0].id,albums[i].artists[0].name]
+    //id, name, artist, cover and release date
+    arrayAlbum.push([albums[i].id, albums[i].name, artistData, albums[i].images[0].url,albums[i].release_date])
+    i = i+1
+  }
+  return arrayAlbum
+}
+
 
 app.get('/discogs-main', (req, res) => {
   var db = discogs.database();
@@ -116,28 +130,20 @@ app.get('/discogs-main', (req, res) => {
 //to separate name of artist and album
 const regexArtistAlbum = /(.+?)(?:\s+\(\d+\))? - (.+)/;
 
-app.get('/discogs-search', (req, res) => {
-  var db = discogs.database();
-  db.search ({artist: req.query.search,type: "release",page:"1",per_page:"50"})
-  .then(function (searchResult) {
-    if (searchResult.results.length > 0) {
-        i = 0
-        arrayAlbum = []
-        while(i<searchResult.results.length){
-          let matchArtistAlbum = searchResult.results[i].title.match(regexArtistAlbum);
-          let cover = "https://cdn-icons-png.flaticon.com/512/16/16096.png"
-          if(searchResult.results[i].cover_image != undefined && searchResult.results[i].cover_image != null && searchResult.results[i].cover_image != "https://st.discogs.com/455614591780dfa702b27aca035dd230e612f723/images/spacer.gif"){
-            cover = searchResult.results[i].cover_image
-          }
-          //id album artist image cover and year
-          arrayAlbum.push([searchResult.results[i].id, matchArtistAlbum[1].trim(), matchArtistAlbum[2].trim(), cover,searchResult.results[i].year]);
-          i = i+1
-        }
-        res.send(arrayAlbum)
-    } else {
-      console.log("No album was found.")
-    }
-    });
+app.get('/discogs-search', async (req, res) => {
+  const accessTokenSpotify = await getSpotifyAccessToken();
+  axios.get(`https://api.spotify.com/v1/search?q=${req.query.search}&type=album&limit=50`, {
+    headers: {
+      Authorization: `Bearer ${accessTokenSpotify}`,
+    },
+  })
+  .then((response) => {
+    const arrayAlbum = formatAlbum(response);
+    res.send(arrayAlbum)
+  })
+  .catch((error) => {
+    console.error('Spotify API error', error);
+  });
 });
 
 //albums shown on the home page
@@ -149,16 +155,7 @@ app.get('/new-releases', async (req, res) => {
     },
   })
   .then((response) => {
-    const albums = response.data.albums.items
-    let i = 0
-    let arrayAlbum = []
-    while(i < albums.length){
-      //id and name of artist
-      const artistData = [albums[i].artists[0].id,albums[i].artists[0].name]
-      //id, name, artist, cover and release date
-      arrayAlbum.push([albums[i].id, albums[i].name, artistData, albums[i].images[0].url,albums[i].release_date])
-      i = i+1
-    }
+    const arrayAlbum = formatAlbum(response)
     res.send(arrayAlbum)
   })
   .catch((error) => {
