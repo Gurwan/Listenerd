@@ -2,10 +2,10 @@
   <div>
     <main-navbar @search-text-changed="searchAlbumsArtists"></main-navbar>
     <div class="grid-home">
-      <router-link v-for="data in removeDouble" :key="data[0]" :to="'/album/' + data[0]" class="p-4 flex flex-col items-center">
+      <router-link v-for="data in albumsValues" :key="data[0]" :to="'/album/' + data[0]" class="p-4 flex flex-col items-center">
         <img :src="data[3]" alt="Image" class="max-w-full h-auto w-64 md:w-48 lg:w-32 xl:w-24 mb-2 mx-auto"> 
-        <p class="font-bold">{{ data[2] }}</p>
-        <p class="text-gray-600">{{ data[1] }} - {{ data[4] }}</p>
+        <p class="font-bold">{{ data[1] }}</p>
+        <p class="text-gray-600">{{ data[2][1] }} - {{ data[4] }}</p>
       </router-link>
     </div>
   </div>
@@ -26,20 +26,6 @@ export default {
       searchText: '',
     };
   },
-  computed: {
-    removeDouble() {
-      const mapAlbum = new Map();
-      this.albumsValues.forEach(data => {
-        const artist = data[1].trim().toUpperCase();
-        const album = data[2].trim().toUpperCase();
-        const key = `${artist}-${album}`;
-        if (!mapAlbum.has(key)) {
-          mapAlbum.set(key, data);
-        }
-      });
-      return Array.from(mapAlbum.values());
-    }
-  },
   methods: {
     searchAlbumsArtists(searchText) {
       axios.get(`http://localhost:3001/discogs-search?search=${searchText}`)
@@ -49,6 +35,7 @@ export default {
         });
     },
     refreshData(response) {
+      console.log(response)
       const allData = response.data;
       if (Array.isArray(allData) && allData.length > 0) {
         this.albumsValues = allData;
@@ -58,7 +45,7 @@ export default {
     }
   },
   mounted() {
-    axios.get('http://localhost:3001/discogs-trends')
+    axios.get('http://localhost:3001/new-releases')
     .then((response) => this.refreshData(response))
     .catch(error => {
           console.error('API request error :', error);

@@ -44,6 +44,67 @@ async function run() {
 }
 run().catch(console.dir);
 
+async function getSpotifyAccessToken(){
+  return 'BQDZnTF1ZLQb7eqhVCn1PCwDHiD5iYalTyLW1YtpGWXVxXPhxAJGgUHSUorbj6o0-aLra1b2gajkIUK5jaIA5YUutcK1bgNbqrOP0bYlnxz-b-n3EhEXI7MfaDjQAjBH2nKCJ7OTiGJmxuf6fuICiuc8JcNkpvm1adbyTibvnoNYofyvacpmFPEJowHKDyHCdJ4'
+  const spotifyInCache = cache.get('spotify_accessToken');
+  if(!spotifyInCache){
+    console.log("the spotify access token is not available in the cache !")
+    try {
+      await client.connect();
+      const data = await client.db("Listenerd").collection("spotifyAuth").findOne();
+      if (data) {
+        const currentTime = new Date();
+        //1 hour
+        if ((currentTime - data.date) > 3600000) {
+          const refresh_token = data.refresh_token;
+          const client_id = `${config.spotify.clientId}`;
+          const client_secret = `${config.spotify.clientSecret}`;
+      
+          //code providing by spotify API
+          var requestData = {
+            url: 'https://accounts.spotify.com/api/token',
+            headers: { 'Authorization': 'Basic ' + (new Buffer.from(client_id + ':' + client_secret).toString('base64')) },
+            form: {
+              grant_type: 'refresh_token',
+              refresh_token: refresh_token
+            },
+            json: true
+          };
+      
+          request.post(requestData, async function (e, response, body) {
+            if (response.statusCode === 200) {
+              var access_token = body.access_token;
+              
+              const newAccessToken = {
+                $set: {
+                  access_token: access_token,
+                  date: new Date()
+                }
+              };
+      
+              let idAuth = data.idAuth
+              await client.db("Listenerd").collection("spotifyAuth").updateOne({ idAuth }, newAccessToken);
+              cache.set('spotify_accessToken', access_token, 3000);
+              return access_token
+            } else {
+            }
+          });
+        } else {
+          const accessToken = data.access_token;
+          cache.set('spotify_accessToken', accessToken, 3000);
+          return accessToken
+        }
+      } else {
+        console.log("access_token not found")
+        return null;
+      }
+    } finally {
+    }
+  } else {
+    return spotifyInCache
+  }
+}
+
 
 app.get('/discogs-main', (req, res) => {
   var db = discogs.database();
@@ -79,30 +140,32 @@ app.get('/discogs-search', (req, res) => {
     });
 });
 
-app.get('/discogs-trends', (req, res) => {
-  var db = discogs.database();
-  //filter to test 
-  db.search ({country: "France", year: "2023", type:"release", style: ["Rap"], per_page: "25"})
-  .then(function (searchResult) {
-    if (searchResult.results.length > 0) {
-        i = 0
-        arrayAlbum = []
-        while(i<searchResult.results.length){
-          let matchArtistAlbum = searchResult.results[i].title.match(regexArtistAlbum);
-          let cover = "https://cdn-icons-png.flaticon.com/512/16/16096.png"
-          if(searchResult.results[i].cover_image != undefined && searchResult.results[i].cover_image != null && searchResult.results[i].cover_image != "https://st.discogs.com/455614591780dfa702b27aca035dd230e612f723/images/spacer.gif"){
-            cover = searchResult.results[i].cover_image
-          }
-          arrayAlbum.push([searchResult.results[i].id, matchArtistAlbum[1].trim(), matchArtistAlbum[2].trim(), cover,
-          searchResult.results[i].year]);
-          i = i+1
-        }
-        res.send(arrayAlbum)
-    } else {
-      console.log("No album was found.")
+//albums shown on the home page
+app.get('/new-releases', async (req, res) => {
+  const accessTokenSpotify = await getSpotifyAccessToken();
+  axios.get(`https://api.spotify.com/v1/browse/new-releases?country=FR&limit=50&offset=0`, {
+    headers: {
+      Authorization: `Bearer ${accessTokenSpotify}`,
+    },
+  })
+  .then((response) => {
+    const albums = response.data.albums.items
+    let i = 0
+    let arrayAlbum = []
+    while(i < albums.length){
+      //id and name of artist
+      const artistData = [albums[i].artists[0].id,albums[i].artists[0].name]
+      //id, name, artist, cover and release date
+      arrayAlbum.push([albums[i].id, albums[i].name, artistData, albums[i].images[0].url,albums[i].release_date])
+      i = i+1
     }
+    res.send(arrayAlbum)
+  })
+  .catch((error) => {
+    console.error('Spotify API error', error);
   });
 });
+
 
 app.get('/discogs-album', (req, res) => {
   var db = discogs.database();
@@ -189,71 +252,20 @@ app.get('/user-auth-spotify-callback', async function(req, res) {
 });
 
 app.get('/get-spotify-access-token', async function(req, res) {
-  const spotifyInCache = cache.get('spotify_accessToken');
-  if(!spotifyInCache){
-    try {
-      await client.connect();
-      const data = await client.db("Listenerd").collection("spotifyAuth").findOne();
-      if (data) {
-        const currentTime = new Date();
-        //1 hour
-        if ((currentTime - data.date) > 3600000) {
-          const refresh_token = data.refresh_token;
-          const client_id = `${config.spotify.clientId}`;
-          const client_secret = `${config.spotify.clientSecret}`;
-      
-          //code providing by spotify API
-          var requestData = {
-            url: 'https://accounts.spotify.com/api/token',
-            headers: { 'Authorization': 'Basic ' + (new Buffer.from(client_id + ':' + client_secret).toString('base64')) },
-            form: {
-              grant_type: 'refresh_token',
-              refresh_token: refresh_token
-            },
-            json: true
-          };
-      
-          request.post(requestData, async function (e, response, body) {
-            if (response.statusCode === 200) {
-              var access_token = body.access_token;
-              
-              const newAccessToken = {
-                $set: {
-                  access_token: access_token,
-                  date: new Date()
-                }
-              };
-      
-              let idAuth = data.idAuth
-              await client.db("Listenerd").collection("spotifyAuth").updateOne({ idAuth }, newAccessToken);
-              cache.set('spotify_accessToken', access_token, 3000);
-              res.send(access_token)
-            } else {
-            }
-          });
-        } else {
-          const accessToken = data.access_token;
-          cache.set('spotify_accessToken', accessToken, 3000);
-          res.send(accessToken)
-        }
-      } else {
-        console.log("access_token not found")
-        //code provided by spotify api
-        res.redirect('https://accounts.spotify.com/authorize?' +
-        querystring.stringify({
-          response_type: 'code',
-          client_id: `${config.spotify.clientId}`,
-          scope:  'user-read-private user-read-email',
-          redirect_uri: 'http://localhost:3001/user-auth-spotify-callback',
-          state: "stateNotNull"
-        })); 
-      }
-    } finally {
-    }
+  const accessToken = this.getSpotifyAccessToken();
+  if(accessToken == null){
+    //code provided by spotify api
+    res.redirect('https://accounts.spotify.com/authorize?' +
+    querystring.stringify({
+      response_type: 'code',
+      client_id: `${config.spotify.clientId}`,
+      scope:  'user-read-private user-read-email',
+      redirect_uri: 'http://localhost:3001/user-auth-spotify-callback',
+      state: "stateNotNull"
+    })); 
   } else {
-    res.send(spotifyInCache)
+    res.send(accessToken);
   }
-
 });
 
 //code 
