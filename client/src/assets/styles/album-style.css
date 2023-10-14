@@ -7,9 +7,24 @@
     display: flex;
 }
 
+.cover-album {
+    width: 24rem;
+    height: 24rem;
+    margin-bottom: 1rem;
+    border-radius: 9999px;
+}
+
 #right-side {
     width: 50%;
     display: flex;
+    height: 100vh;
+    margin-bottom: 200px;
+}
+
+iframe {
+    margin-top: 2rem;
+    width: 24rem;
+    height: 12rem;
 }
 
 @media (max-width: 1000px) {
@@ -20,10 +35,54 @@
     #left-side {
         width: 100%;
         display: block;
+        text-align: center;
     }
     
     #right-side {
         width: 100%;
+        display: block;
+        height: 20vh;
+    }
+
+    .cover-album {
+        margin: 0 auto;
+        margin-bottom: 50px;
+    }
+}
+
+@media (min-width: 500px) and (max-width: 800px) {
+    iframe {
+        width: 20rem;
+        height: 11rem;
+    }
+}
+
+@media (min-width: 320px) and (max-width: 500px) {
+    .cover-album {
+        width: 17rem;
+        height: 17rem;
+    }
+
+    iframe {
+        width: 18rem!important;
+        height: 10rem!important;
+        justify-content: center;
+        margin: auto;
+        display: block;
+    }
+}
+
+@media (max-width: 320px) {
+    .cover-album {
+        width: 12rem;
+        height: 12rem;
+    }
+
+    iframe {
+        width: 14rem!important;
+        height: 10rem!important;
+        justify-content: center;
+        margin: auto;
         display: block;
     }
 }

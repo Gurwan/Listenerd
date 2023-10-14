@@ -6,7 +6,7 @@
             <div class="flex w-full h-full items-center justify-center">
                 <scale-loader v-if="!albumData.length" :loading="loading" :color="color" :size="size"></scale-loader>
                 <div v-else>
-                  <img :src="albumData[3]" alt="Album cover" class="w-96 h-96 rounded-full mb-4">
+                  <img :src="albumData[3]" alt="Album cover" class="cover-album">
                   <h1 class="text-2xl font-bold">{{ albumData[1] }}</h1>
                   <router-link :to="'/artist/' + albumData[2][0]">
                     <p class="text-xl">{{ albumData[2][1] }}</p>
@@ -20,7 +20,7 @@
                 </div>
             </div>
         </div>
-        <div id="right-side" class="items-center justify-center h-screen">
+        <div id="right-side" class="items-center justify-center">
             <div class="w-full h-full flex items-center justify-center">
               <scale-loader v-if="!albumData.length" :loading="loading" :color="color" :size="size"></scale-loader>
               <div v-else>
@@ -72,7 +72,6 @@ export default {
         const spotifyDiv = document.getElementById('spotifyPlayerDiv');
         const iframe = document.createElement('iframe');
         iframe.src = `https://open.spotify.com/embed/track/${trackId}`;
-        iframe.classList = "w-96 h-48"
         spotifyDiv.appendChild(iframe);
       })
     }
