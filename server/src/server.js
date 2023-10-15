@@ -4,14 +4,17 @@ const axios = require('axios');
 const config = require('../../config/config') 
 const querystring = require('querystring');
 const cors = require('cors'); 
-//npm client library for Discogs.com (Music database API)
-const Discogs = require('disconnect').Client;
+const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const e = require('express');
+const bcrypt = require('bcrypt');
 const app = express();
 const port = 3001;
+const User = require('../models/User')
 
 app.use(cors());
+
+app.use(express.json());
 
 //I could use a environment variable to store the password with the npm module dotenv but it's testing so no needs.
 const uri = "mongodb+srv://listenerd_test:wKSMDtg283ojJncG@cluster0.zcloy3n.mongodb.net/?retryWrites=true&w=majority";
@@ -24,8 +27,6 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   }
 });
-
-const discogs = new Discogs({consumerKey: `${config.discogs.key}`, consumerSecret: `${config.discogs.secret}`});
 
 //The async function run is provided by the website cloud.mongodb.com to implement MongoDB Atlas and have an online database
 async function run() {
@@ -107,14 +108,6 @@ function formatAlbum(response){
   }
   return arrayAlbum
 }
-
-
-app.get('/discogs-main', (req, res) => {
-  var db = discogs.database();
-  db.search ("", function(err, data){
-    res.send(data);
-  });
-});
 
 //to separate name of artist and album
 const regexArtistAlbum = /(.+?)(?:\s+\(\d+\))? - (.+)/;
@@ -312,6 +305,69 @@ app.get('/get-spotify-access-token', async function(req, res) {
   } else {
     res.send(accessToken);
   }
+});
+
+app.post('/register', async (req,res) => {
+  const {username, password} = req.body;
+
+  try {
+    const users = client.db('Listenerd').collection('users'); 
+    let user = await users.findOne({username});
+    if(user == null){
+      const salt = await bcrypt.genSalt(10);
+      let cryptedPassword = await bcrypt.hash(password, salt);
+
+      user = new User(username,cryptedPassword)
+      await users.insertOne(user);
+
+      jwt.sign({user:{id: user.id}},'listenerd_secret_key',
+       {expiresIn: 7200}, (err, token) => {
+        if(err) throw err;
+        res.json({token});
+       })
+    } else {
+      return res.status(400).json({msg: 'Username already taken'});
+    }
+  } catch (err){
+    console.log(err)
+    res.status(500).send("Server error")
+  }
+});
+
+app.post('/login', async (req,res) => {
+  const {username, password} = req.body;
+  try {
+    const users = client.db('Listenerd').collection('users'); 
+    const user = await users.findOne({ username });    
+    if(user){
+      const passwordOk = await bcrypt.compare(password, user.password);
+      if(passwordOk){
+        jwt.sign({user:{id: user.id}},'listenerd_secret_key',
+        {expiresIn: 7200}, (err, token) => {
+         if(err) throw err;
+         res.json({token});
+        })
+      } else {
+        return res.status(400).json({msg: 'Wrong password'});
+      }
+    } else {
+      return res.status(400).json({msg: 'Username does not exist'});
+    }
+  } catch (err){
+    res.status(500).send("Server error")
+  }
+});
+
+app.post('/logout', async (req, res) => {
+  // Vous pouvez implémenter la déconnexion ici
+
+  // Par exemple, supprimez le jeton d'authentification stocké côté client (s'il y en a un)
+  // Pour supprimer le jeton stocké dans localStorage :
+  // localStorage.removeItem('jwt_token');
+
+  // Si vous utilisez des sessions, vous pouvez également détruire la session ici
+
+  res.json({ message: 'Déconnexion réussie' });
 });
 
 //code 

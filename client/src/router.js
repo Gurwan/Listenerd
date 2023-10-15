@@ -2,6 +2,11 @@ import { createRouter, createWebHistory } from 'vue-router';
 import MainPage from './components/MainPage.vue';
 import AlbumPage from './components/AlbumPage.vue';
 import ArtistPage from './components/ArtistPage.vue';
+import LoginPage from './components/LoginPage.vue';
+import RegisterPage from './components/RegisterPage.vue';
+import ProfilePage from './components/ProfilePage.vue';
+import LogoutPage from './components/LogoutPage.vue';
+import authCheck from './authCheck.js'; 
 
 const routes = [
     {
@@ -18,6 +23,27 @@ const routes = [
         path: '/artist/:id', 
         name: 'Artist page',
         component: ArtistPage,
+      },
+      {
+        path: '/register',
+        name: 'Register page',
+        component: RegisterPage,
+      },
+      {
+        path: '/login',
+        name: 'Login page',
+        component: LoginPage,
+      },
+      {
+        path: '/profile',
+        name: 'Profile',
+        component: ProfilePage,
+        beforeEnter: authCheck,
+      },
+      {
+        path: '/logout',
+        name: 'Logout page',
+        component: LogoutPage,
       },
 ];
 
