@@ -359,15 +359,24 @@ app.post('/login', async (req,res) => {
 });
 
 app.post('/logout', async (req, res) => {
-  // Vous pouvez implémenter la déconnexion ici
+  res.json({ message: 'Success of logout' });
+});
 
-  // Par exemple, supprimez le jeton d'authentification stocké côté client (s'il y en a un)
-  // Pour supprimer le jeton stocké dans localStorage :
-  // localStorage.removeItem('jwt_token');
+function authUser(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
 
-  // Si vous utilisez des sessions, vous pouvez également détruire la session ici
+  jwt.verify(token, 'listenerd_secret_key', (err, user) => {
+    req.user = user;
+    next(); 
+  });
+}
 
-  res.json({ message: 'Déconnexion réussie' });
+app.get('/user-profile', authUser, async (req, res) => {
+  const user_id = req.user.id;
+  const users = client.db('Listenerd').collection('users'); 
+  const user = await users.findOne({ user_id });   
+  res.send(user)
 });
 
 //code 

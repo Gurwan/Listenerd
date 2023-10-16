@@ -11,15 +11,21 @@
             placeholder="Search something"
           />
         </div>
-        <li class="nav-item">
+        <li class="nav-item" v-if="onMainPage">
           <a class="text-white hover:text-blue-300" href="#" @click="activateSearch">
             <i class="fas fa-search"></i>
           </a>
         </li>
-        <li class="nav-item">
+        <li class="nav-item" v-if="isAuth">
+          <a class="text-white hover:text-blue-300" href="/profile">Profile</a>
+        </li>
+        <li class="nav-item" v-else>
           <a class="text-white hover:text-blue-300" href="/login">Login</a>
         </li>
-        <li class="nav-item">
+        <li class="nav-item" v-if="isAuth">
+          <a class="text-white hover:text-blue-300" href="/logout">Logout</a>
+        </li>
+        <li class="nav-item" v-else>
           <a class="text-white hover:text-blue-300" href="/register">Register</a>
         </li>
       </ul>
@@ -34,7 +40,23 @@ export default {
       name: 'MainNavbar',
       search_active: false,
       searchText: '',
+      isAuth: false,
+      onMainPage: false,
     };
+  },
+  created() {
+    const isAuthToken = localStorage.getItem('jwt_token');
+    if(isAuthToken){
+      this.isAuth = true;
+    } else {
+      this.isAuth = false;
+    }
+
+    if(window.location.pathname == '/'){
+      this.onMainPage = true;
+    } else {
+      this.onMainPage = false;
+    }
   },
   methods: {
     activateSearch() {
