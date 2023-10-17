@@ -22,6 +22,18 @@ img {
     font-size: xx-large;
 }
 
+button {
+    padding: 2rem;
+    margin: 1rem;
+}
+
+.success {
+    background-color: #3fac43;
+    color: white;
+    padding: 10px;
+    text-align: center;
+}
+
 @media (min-width: 500px) and (max-width: 800px) {
     img {
         width: 18rem;

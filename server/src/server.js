@@ -13,9 +13,7 @@ const port = 3001;
 const User = require('../models/User')
 
 app.use(cors());
-
-app.use(express.json());
-
+app.use(express.json({ limit: '10mb' }));
 //I could use a environment variable to store the password with the npm module dotenv but it's testing so no needs.
 const uri = "mongodb+srv://listenerd_test:wKSMDtg283ojJncG@cluster0.zcloy3n.mongodb.net/?retryWrites=true&w=majority";
 
@@ -342,7 +340,7 @@ app.post('/login', async (req,res) => {
     if(user){
       const passwordOk = await bcrypt.compare(password, user.password);
       if(passwordOk){
-        jwt.sign({user:{id: user.id}},'listenerd_secret_key',
+        jwt.sign({username: user.username},'listenerd_secret_key',
         {expiresIn: 7200}, (err, token) => {
          if(err) throw err;
          res.json({token});
@@ -373,10 +371,41 @@ function authUser(req, res, next) {
 }
 
 app.get('/user-profile', authUser, async (req, res) => {
-  const user_id = req.user.id;
+  const username = req.user.username;
   const users = client.db('Listenerd').collection('users'); 
-  const user = await users.findOne({ user_id });   
+  const user = await users.findOne({ username: username });   
   res.send(user)
+});
+
+app.post('/user-save-profile-picture', authUser, async (req, res) => {
+  const username = req.user.username;
+  try {
+    const fileBase64 = req.body.fileBase64;
+    const type = req.body.type;
+    if (!fileBase64 || !type) {
+      return res.status(400).json({ message: 'No file sent or wrong format' });
+    }
+    const users = client.db('Listenerd').collection('users'); 
+
+    const buffer = Buffer.from(fileBase64, 'base64');
+    const newImage = {
+      data: buffer,
+      contentType: type,
+    };
+
+    const filter = { username: username };
+    const update = { $set: { profilePicture: newImage } };
+  
+    const result = await users.updateOne(filter, update);
+  
+    if (result.modifiedCount === 1) {
+      return res.status(200).json({ msg: 'Profile picture updated' });
+    } else {
+      return res.status(500).json({ msg: 'Server error on insertion' });
+    }
+  } catch (error) {
+    return res.status(500).json({ msg: 'Server error' });
+  }
 });
 
 //code 
