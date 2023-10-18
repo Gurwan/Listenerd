@@ -11,6 +11,9 @@ const bcrypt = require('bcrypt');
 const app = express();
 const port = 3001;
 const User = require('../models/User')
+const Album = require('../models/Album')
+const Artist = require('../models/Artist');
+const { unsubscribe } = require('diagnostics_channel');
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
@@ -373,8 +376,48 @@ function authUser(req, res, next) {
 app.get('/user-profile', authUser, async (req, res) => {
   const username = req.user.username;
   const users = client.db('Listenerd').collection('users'); 
-  const user = await users.findOne({ username: username });   
-  res.send(user)
+  const user = await users.findOne({ username: username });
+  const previewAlbums = [[],[]];
+  if(user.toListen != [] || user.liked != []){
+    const albums = client.db('Listenerd').collection('albums'); 
+    if(user.toListen.length >= 3){
+      for(let i=0;i<3;i++){
+        let album = await albums.findOne({ idAlbum: user.toListen[i] });
+        previewAlbums[0].push(album.cover);
+      }
+    }
+    if(user.liked.length >= 3){
+      for(let i=0;i<3;i++){
+        let album = await albums.findOne({ idAlbum: user.liked[i] });
+        previewAlbums[1].push(album.cover);
+      }
+    }
+  }
+  res.send({user,previewAlbums})
+});
+
+app.get('/user-list', authUser, async (req, res) => {
+  const username = req.user.username;
+  const users = client.db('Listenerd').collection('users'); 
+  const user = await users.findOne({ username: username });
+  const list = req.query.list;
+  const albums = client.db('Listenerd').collection('albums'); 
+  const artists = client.db('Listenerd').collection('artists'); 
+  let retAlbums = []
+  if(list == 0){
+    for(let i=0;i<user.toListen.length;i++){
+      let album = await albums.findOne({ idAlbum: user.toListen[i] });
+      let artist = await artists.findOne({ idArtist: album.artistId });
+      retAlbums.push([album.idAlbum, album.title, [album.artistId, artist.name], album.cover, album.releaseDate]);
+    }
+  } else {
+    for(let i=0;i<user.liked.length;i++){
+      let album = await albums.findOne({ idAlbum: user.liked[i] });
+      let artist = await artists.findOne({ idArtist: album.artistId });
+      retAlbums.push([album.idAlbum, album.title, [album.artistId, artist.name], album.cover, album.releaseDate]);
+    }
+  }
+  res.send(retAlbums)
 });
 
 app.post('/user-save-profile-picture', authUser, async (req, res) => {
@@ -408,11 +451,57 @@ app.post('/user-save-profile-picture', authUser, async (req, res) => {
   }
 });
 
+/**
+ * In fact it is add or remove album to list (to listen or liked list)
+ */
 app.post('/add-album-to-list', authUser, async (req, res) => {
   const username = req.user.username;
-  console.log(username)
-  console.log(req.body)
-  
+  const list = req.body.list;
+  const dataAlbum = req.body.albumDataToInsertInDB;
+  const albumId = dataAlbum[0];
+  try {
+    const users = client.db('Listenerd').collection('users'); 
+    const albums = client.db('Listenerd').collection('albums'); 
+    let user = await users.findOne({username});
+    if(user != null){
+      const album = await albums.findOne({idAlbum: albumId});
+      if(album == null){
+        const artists = client.db('Listenerd').collection('artists'); 
+        const artistId = dataAlbum[2][0];
+        const artist = await artists.findOne({idArtist: artistId});
+        if(artist == null){
+          const artistObject = new Artist(artistId,dataAlbum[2][1])
+          await artists.insertOne(artistObject);
+        }
+        const albumObject = new Album(albumId,dataAlbum[1],artistId,dataAlbum[4],dataAlbum[3]);
+        await albums.insertOne(albumObject);
+      }
+      if(list == 0){
+        if(user.toListen.includes(albumId)){
+          //delete the album of the list
+          await users.updateOne({username:username},{$pull: {toListen: albumId}});
+          return res.status(200).json({ msg: 'Album deleted from the to listen list' });
+        } else {
+          await users.updateOne({username:username},{$push: {toListen: albumId}});
+          return res.status(200).json({ msg: 'Album added to the to listen list' });
+        }
+      } else {
+        if(user.toListen.includes(albumId)){
+          //delete the album of the liked list
+          await users.updateOne({username:username},{$pull: {liked: albumId}});
+          return res.status(200).json({ msg: 'Album deleted from the liked list' });
+        } else {
+          await users.updateOne({username:username},{$push: {liked: albumId}});
+          return res.status(200).json({ msg: 'Album added to the liked list' });
+        }
+      } 
+    } else {
+      return res.status(400).json({ message: 'User must be logged' });
+    }
+  } catch(error){
+    console.error(error.message)
+    return res.status(500).json({ msg: 'Server error' });
+  }
 });
 
 //code 

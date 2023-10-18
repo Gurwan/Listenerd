@@ -35,7 +35,6 @@ export default {
         });
     },
     refreshData(response) {
-      console.log(response)
       const allData = response.data;
       if (Array.isArray(allData) && allData.length > 0) {
         this.albumsValues = allData;

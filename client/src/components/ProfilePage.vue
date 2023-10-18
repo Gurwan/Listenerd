@@ -15,6 +15,21 @@
         <div>
           <div v-if="successSave" class="success">{{ successSave }}</div>
         </div>
+        <div class="super-div-list">
+          
+            <div class="list-preview" id="list-preview-liked">
+              <router-link :to="'/liked/'">
+                <p class="title-list-preview">Liked albums list</p>
+              </router-link>
+            </div>
+
+            <div class="list-preview" id="list-preview-toListen">
+              <router-link :to="'/toListen/'">
+                <p class="title-list-preview">To listen albums list</p>
+              </router-link>
+            </div>
+
+        </div>
     </div>
 </template>
   
@@ -39,7 +54,8 @@ export default {
 
     axios.get('http://localhost:3001/user-profile')
       .then(async response => {
-        const user = response.data;
+        const user = response.data.user;
+        const previewCovers = response.data.previewAlbums;
         this.username = user.username;
         if(user.profilePicture != null){
           //convert base64 to file
@@ -52,6 +68,17 @@ export default {
           const byteArray = new Uint8Array(byteNumbers);
           const blob = new Blob([byteArray], { type: user.profilePicture.contentType });
           this.pic = URL.createObjectURL(blob);
+          console.log(previewCovers)
+          if(previewCovers[0].length == 3){
+            let element = document.getElementById("list-preview-toListen");
+            element.style.backgroundImage = `url(${previewCovers[0][0]}), url(${previewCovers[0][1]}), url(${previewCovers[0][2]})`;
+          }
+
+          if(previewCovers[1].length == 3){
+            let element = document.getElementById("list-preview-liked");
+            element.style.backgroundImage = `url(${previewCovers[1][0]}), url(${previewCovers[1][1]}), url(${previewCovers[1][2]})`;
+
+          }
         }
       })
       .catch(error => {

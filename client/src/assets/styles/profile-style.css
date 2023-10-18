@@ -27,11 +27,61 @@ button {
     margin: 1rem;
 }
 
+.super-div-list {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.title-list-preview {
+    font-size: larger;
+    font-weight: bolder;
+    background-color: black;
+    padding: 1rem;
+}
+
+.list-preview {
+    background-color: rgb(221, 217, 217);
+    color:white;
+    width: 40%;
+    height: 10rem;
+    margin: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-repeat: no-repeat;
+    background-size: 33%,33%,33%;
+    background-position: left, center, right; 
+}
+
 .success {
     background-color: #3fac43;
     color: white;
     padding: 10px;
     text-align: center;
+}
+
+
+@media (min-width: 650px) and (max-width: 1300px) {
+    .list-preview {
+        background-size: 50%,50%,0%;
+        background-position: left, right, right; 
+    }
+}
+
+@media (max-width: 650px) {
+    .list-preview {
+        background-size: 100%,0%,0%;
+        background-position: center, right, right; 
+        margin: 1rem;
+    }
+    .title-list-preview {
+        font-size: small;
+        font-weight: bolder;
+        background-color: black;
+        padding: 1rem;
+    }
 }
 
 @media (min-width: 500px) and (max-width: 800px) {

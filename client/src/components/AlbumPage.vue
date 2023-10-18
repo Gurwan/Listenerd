@@ -19,7 +19,8 @@
                       <i class="fa-solid fa-folder-plus fa-2xl icon-add-album"></i>
                     </a>
                     <a class="text-white hover:text-blue-300" href="#" @click="addAlbumToList(1)">
-                      <i class="fa-solid fa-record-vinyl fa-2xl icon-add-album"></i>
+                      <i class="fa-regular fa-heart fa-2xl icon-add-album"></i>
+                      <!-- fa-solid if already liked ?-->
                     </a>
                   </div>
                 </div>
@@ -97,15 +98,15 @@ export default {
     },
 
     /**
-     * Add album to either the listen list or the wish list of the user
-     * @param {Integer} arg 0 if user wants to add album to his wish list and 1 if he wants to add to it to his listen list
+     * Add album to either the liked list or the to listen list of the user
+     * @param {Integer} arg 0 if user wants to add album to his to listen list and 1 if he wants to add to it to his liked list
      */
      addAlbumToList(list){
       const userId = localStorage.getItem('jwt_token');
       axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
       //required data to show the album in lists : id of album, name, id of main artist, cover and release date
       //only the id will be used if the album is already in the db
-      const albumDataToInsertInDB = [this.albumData[0],this.albumData[1],this.albumData[2][0],this.albumData[3],this.albumData[4]]
+      const albumDataToInsertInDB = [this.albumData[0],this.albumData[1],this.albumData[2],this.albumData[3],this.albumData[4]]
       axios.post('http://localhost:3001/add-album-to-list', {albumDataToInsertInDB,list})
         .then(response => {
           console.log(response)

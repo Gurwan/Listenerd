@@ -6,6 +6,8 @@ import LoginPage from './components/LoginPage.vue';
 import RegisterPage from './components/RegisterPage.vue';
 import ProfilePage from './components/ProfilePage.vue';
 import LogoutPage from './components/LogoutPage.vue';
+import LikedPage from './components/LikedPage.vue';
+import ToListenPage from './components/ToListenPage.vue';
 import authCheck from './authCheck.js'; 
 
 const routes = [
@@ -38,6 +40,18 @@ const routes = [
         path: '/profile',
         name: 'Profile',
         component: ProfilePage,
+        beforeEnter: authCheck,
+      },
+      {
+        path: '/liked',
+        name: 'Liked albums',
+        component: LikedPage,
+        beforeEnter: authCheck,
+      },
+      {
+        path: '/toListen',
+        name: 'Albums to listen',
+        component: ToListenPage,
         beforeEnter: authCheck,
       },
       {

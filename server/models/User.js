@@ -1,5 +1,3 @@
-const mongoose = require('mongoose');
-
 class User {
   constructor(username, password, profilePicture, toListen, liked) {
     this.username = username;
