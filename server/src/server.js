@@ -408,6 +408,13 @@ app.post('/user-save-profile-picture', authUser, async (req, res) => {
   }
 });
 
+app.post('/add-album-to-list', authUser, async (req, res) => {
+  const username = req.user.username;
+  console.log(username)
+  console.log(req.body)
+  
+});
+
 //code 
 app.listen(port, () => {
   console.log(`Server side is running on localhost:${port}`);

@@ -44,7 +44,7 @@ export default {
       });
       const token = response.data.token;
       localStorage.setItem('jwt_token', token);
-      router.push('/profile');
+      router.push('/');
     },
   },
 };

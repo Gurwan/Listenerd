@@ -1,27 +1,35 @@
 <template>
-        <div class="main-div-artist">
-          <div class="artist-side-div">
-            <sync-loader v-if="!artistData.length" :loading="loading" :color="color" :size="size"></sync-loader>
-            <div v-else>
-              <div class="artist-details-div">
-                <img :src="artistData[2]" alt="Artist picture" class="artist_picture">
-                <h1 class="text-2xl font-bold">{{ artistData[1] }}</h1> 
-                <p class="text-lg">{{ artistData[3] }} followers on Spotify and have a popularity of {{artistData[4]}}/100</p> 
-                <p class="text-lg">{{ artistData[5] }}</p>
-                <div class="items-center justify-center" id="spotifyPlayerDiv"></div>
-              </div>
-              <div class="albums-grid" id="grid-albums">
-              </div>
-            </div>
+  <div>
+    <main-navbar></main-navbar>
+    <div class="main-div-artist">
+      <div class="artist-side-div">
+        <sync-loader v-if="!artistData.length" :loading="loading" :color="color" :size="size"></sync-loader>
+        <div v-else>
+          <div class="artist-details-div">
+            <img :src="artistData[2]" alt="Artist picture" class="artist_picture">
+            <h1 class="text-2xl font-bold">{{ artistData[1] }}</h1> 
+            <p class="text-lg">{{ artistData[3] }} followers on Spotify and have a popularity of {{artistData[4]}}/100</p> 
+            <p class="text-lg">{{ artistData[5] }}</p>
+            <div class="items-center justify-center" id="spotifyPlayerDiv"></div>
           </div>
+          <div class="albums-grid" id="grid-albums">
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 </template>  
   
 <script>
 import axios from 'axios';
 import SyncLoader from 'vue-spinner/src/SyncLoader.vue'
 
+import MainNavbar from './MainNavbar.vue'
 export default {
+  components: {
+    "main-navbar": MainNavbar,
+    SyncLoader, 
+  },
   data() {
     return {
       artistData: [],
@@ -86,9 +94,6 @@ export default {
       })
     },
     
-  },
-  components: {
-    SyncLoader, 
   },
 };
 </script>
