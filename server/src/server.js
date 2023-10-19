@@ -17,27 +17,18 @@ const { unsubscribe } = require('diagnostics_channel');
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
-//I could use a environment variable to store the password with the npm module dotenv but it's testing so no needs.
-const uri = "mongodb+srv://listenerd_test:wKSMDtg283ojJncG@cluster0.zcloy3n.mongodb.net/?retryWrites=true&w=majority";
 
-//The code between line 10 and 42 is provided by the website cloud.mongodb.com to implement MongoDB Atlas and have an online database
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  }
-});
+const uri = "mongodb://localhost:27017";
 
-//The async function run is provided by the website cloud.mongodb.com to implement MongoDB Atlas and have an online database
+const client = new MongoClient(uri);
+
 async function run() {
   try {
     await client.connect();
-    // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } catch (e) {
-    //console.log(e)
+    console.log(e)
   } finally {
     //await client.close();
   }
@@ -114,7 +105,10 @@ function formatAlbum(response){
 const regexArtistAlbum = /(.+?)(?:\s+\(\d+\))? - (.+)/;
 
 app.get('/search', async (req, res) => {
-  const accessTokenSpotify = await getSpotifyAccessToken();
+  let accessTokenSpotify = null;
+  while(accessTokenSpotify == null){
+    accessTokenSpotify = await getSpotifyAccessToken();
+  }
   axios.get(`https://api.spotify.com/v1/search?q=${req.query.search}&type=album&limit=50`, {
     headers: {
       Authorization: `Bearer ${accessTokenSpotify}`,
