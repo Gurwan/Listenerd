@@ -8,6 +8,9 @@
     margin-top: 4rem;
 }
 
+.aList {
+}
+
 .cover-album {
     width: 24rem;
     height: 24rem;
@@ -16,7 +19,7 @@
 }
 
 .icon-add-album {
-    margin-top: 1rem;
+    margin: 1rem;
     padding: 1rem;
     color: black;
 }

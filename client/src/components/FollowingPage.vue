@@ -1,11 +1,10 @@
 <template>
   <div>
       <main-navbar></main-navbar>
-      <div class="grid-list">
-        <router-link v-for="data in albumsValues" :key="data[0]" :to="'/album/' + data[0]" class="p-4 flex flex-col items-center">
-          <img :src="data[3]" alt="Image" class="max-w-full h-auto w-64 md:w-48 lg:w-32 xl:w-24 mb-2 mx-auto"> 
+      <div class="grid-list-artist">
+        <router-link v-for="data in artistValues" :key="data[0]" :to="'/artist/' + data[0]" class="p-4 flex flex-col items-center">
+          <img class="artist-img" :src="data[2]" alt="Image"> 
           <p class="font-bold">{{ data[1] }}</p>
-          <p class="text-gray-600">{{ data[2][1] }} - {{ data[4] }}</p>
         </router-link>
       </div>
   </div>
@@ -20,22 +19,21 @@ components: {
 },
 data() {
   return {
-    albumsValues: [],
+    artistValues: [],
   };
 },
 created(){
   const userId = localStorage.getItem('jwt_token');
   axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
 
-  axios.get('http://localhost:3001/user-list?list=1')
+  axios.get('http://localhost:3001/user-list?list=2')
     .then(response => {
       const allData = response.data;
       if (Array.isArray(allData) && allData.length > 0) {
-        this.albumsValues = allData;
+        this.artistValues = allData;
       } else {
         console.error('API data error');
       }
-      console.log(this.albumsValues)
     })
     .catch(error => {
       console.error(error);
@@ -46,3 +44,4 @@ created(){
 <style scoped>
 @import '../assets/styles/list-style.css';
 </style>
+  

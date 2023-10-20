@@ -5,6 +5,7 @@ import ArtistPage from './components/ArtistPage.vue';
 import LoginPage from './components/LoginPage.vue';
 import RegisterPage from './components/RegisterPage.vue';
 import ProfilePage from './components/ProfilePage.vue';
+import FollowingPage from './components/FollowingPage.vue';
 import LogoutPage from './components/LogoutPage.vue';
 import LikedPage from './components/LikedPage.vue';
 import ToListenPage from './components/ToListenPage.vue';
@@ -52,6 +53,12 @@ const routes = [
         path: '/toListen',
         name: 'Albums to listen',
         component: ToListenPage,
+        beforeEnter: authCheck,
+      },
+      {
+        path: '/following',
+        name: 'Followed artist',
+        component: FollowingPage,
         beforeEnter: authCheck,
       },
       {

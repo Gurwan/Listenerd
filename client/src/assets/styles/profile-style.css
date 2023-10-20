@@ -55,6 +55,20 @@ button {
     background-position: left, center, right; 
 }
 
+.list-preview-artist {
+    background-color: rgb(221, 217, 217);
+    color:white;
+    width: 40%;
+    height: 10rem;
+    margin: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-repeat: no-repeat;
+    background-size: 33%,33%,33%;
+    background-position: left, center, right; 
+}
+
 .success {
     background-color: #3fac43;
     color: white;

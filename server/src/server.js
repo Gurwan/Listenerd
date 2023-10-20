@@ -169,7 +169,7 @@ app.get('/get-artist', async (req, res) => {
       Authorization: `Bearer ${accessTokenSpotify}`,
     },
   })
-  .then((response) => {
+  .then(async (response) => {
     const data = response.data;
     //id, name, profile picture, followers number, popularity and genres
     let i = 0;
@@ -190,7 +190,15 @@ app.get('/get-artist', async (req, res) => {
     } else {
       followers = data.followers.total.toString();
     }
-    artistData.push([data.id,data.name,data.images[0].url,followers,data.popularity,genres]);
+    const artists = client.db('Listenerd').collection('artists'); 
+    let followersOnListenerd = await artists.findOne({ idArtist: data.id });
+    if(followersOnListenerd != null || followersOnListenerd != undefined){
+      followersOnListenerd = followersOnListenerd.followersListenerd;
+    }
+    if(followersOnListenerd == null || followersOnListenerd == undefined){
+      followersOnListenerd = 0;
+    }
+    artistData.push([data.id,data.name,data.images[0].url,followers,data.popularity,genres,followersOnListenerd]);
 
     //get all albums
     axios.get(`https://api.spotify.com/v1/artists/${req.query.artistId}/albums`, {
@@ -371,23 +379,30 @@ app.get('/user-profile', authUser, async (req, res) => {
   const username = req.user.username;
   const users = client.db('Listenerd').collection('users'); 
   const user = await users.findOne({ username: username });
-  const previewAlbums = [[],[]];
+  const preview = [[],[], []];
   if(user.toListen != [] || user.liked != []){
     const albums = client.db('Listenerd').collection('albums'); 
     if(user.toListen.length >= 3){
       for(let i=0;i<3;i++){
         let album = await albums.findOne({ idAlbum: user.toListen[i] });
-        previewAlbums[0].push(album.cover);
+        preview[0].push(album.cover);
       }
     }
     if(user.liked.length >= 3){
       for(let i=0;i<3;i++){
         let album = await albums.findOne({ idAlbum: user.liked[i] });
-        previewAlbums[1].push(album.cover);
+        preview[1].push(album.cover);
+      }
+    }
+    if(user.artistFollowed != [] && user.artistFollowed.length >= 3){
+      const artists = client.db('Listenerd').collection('artists'); 
+      for(let i=0;i<3;i++){
+        let artist = await artists.findOne({ idArtist: user.artistFollowed[i] });
+        preview[2].push(artist.picture);
       }
     }
   }
-  res.send({user,previewAlbums})
+  res.send({user,preview})
 });
 
 app.get('/user-list', authUser, async (req, res) => {
@@ -397,21 +412,28 @@ app.get('/user-list', authUser, async (req, res) => {
   const list = req.query.list;
   const albums = client.db('Listenerd').collection('albums'); 
   const artists = client.db('Listenerd').collection('artists'); 
-  let retAlbums = []
+  let ret = []
   if(list == 0){
     for(let i=0;i<user.toListen.length;i++){
       let album = await albums.findOne({ idAlbum: user.toListen[i] });
       let artist = await artists.findOne({ idArtist: album.artistId });
-      retAlbums.push([album.idAlbum, album.title, [album.artistId, artist.name], album.cover, album.releaseDate]);
+      ret.push([album.idAlbum, album.title, [album.artistId, artist.name], album.cover, album.releaseDate]);
     }
-  } else {
+  } else if(list == 1) {
     for(let i=0;i<user.liked.length;i++){
       let album = await albums.findOne({ idAlbum: user.liked[i] });
       let artist = await artists.findOne({ idArtist: album.artistId });
-      retAlbums.push([album.idAlbum, album.title, [album.artistId, artist.name], album.cover, album.releaseDate]);
+      ret.push([album.idAlbum, album.title, [album.artistId, artist.name], album.cover, album.releaseDate]);
+    }
+  } else {
+    //artist followed
+    for(let i=0;i<user.artistFollowed.length;i++){
+      let artist = await artists.findOne({ idArtist: user.artistFollowed[i] });
+      ret.push([artist.idArtist, artist.name, artist.picture]);
+      //TODO -> Implement new albums for 1 year for this artist
     }
   }
-  res.send(retAlbums)
+  res.send(ret)
 });
 
 app.post('/user-save-profile-picture', authUser, async (req, res) => {
@@ -474,21 +496,119 @@ app.post('/add-album-to-list', authUser, async (req, res) => {
         if(user.toListen.includes(albumId)){
           //delete the album of the list
           await users.updateOne({username:username},{$pull: {toListen: albumId}});
-          return res.status(200).json({ msg: 'Album deleted from the to listen list' });
+          return res.status(200).json({ msg: -10 });
         } else {
           await users.updateOne({username:username},{$push: {toListen: albumId}});
-          return res.status(200).json({ msg: 'Album added to the to listen list' });
+          return res.status(200).json({ msg: 10 });
         }
       } else {
-        if(user.toListen.includes(albumId)){
+        if(user.liked.includes(albumId)){
           //delete the album of the liked list
           await users.updateOne({username:username},{$pull: {liked: albumId}});
-          return res.status(200).json({ msg: 'Album deleted from the liked list' });
+          return res.status(200).json({ msg: -11 });
         } else {
           await users.updateOne({username:username},{$push: {liked: albumId}});
-          return res.status(200).json({ msg: 'Album added to the liked list' });
+          return res.status(200).json({ msg: 11 });
         }
       } 
+    } else {
+      return res.status(400).json({ message: 'User must be logged' });
+    }
+  } catch(error){
+    console.error(error.message)
+    return res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+app.post('/follow-unfollow-artist', authUser, async (req, res) => {
+  const username = req.user.username;
+  const dataArtist = req.body.artistToFollow;
+  const artistId = dataArtist[0];
+  try {
+    const users = client.db('Listenerd').collection('users'); 
+    const artists = client.db('Listenerd').collection('artists'); 
+    let user = await users.findOne({username});
+    if(user != null){
+      let artist = await artists.findOne({idArtist: artistId});
+      if(artist == null){
+        const artistObject = new Artist(artistId,dataArtist[1],dataArtist[2],1)
+        await artists.insertOne(artistObject);
+      } 
+      artist = await artists.findOne({idArtist: artistId});
+      if(artist.picture == null){
+        await artists.updateOne({idArtist:artistId}, {$set:{picture: dataArtist[2]}})
+      }
+      let newNbOfFollowers = 0;
+      let flag = 0;
+      if(user.artistFollowed != null && user.artistFollowed != [] && user.artistFollowed.includes(artistId)){
+        await users.updateOne({username:username},{$pull: {artistFollowed: artistId}});
+        newNbOfFollowers = artist.followersListenerd - 1;
+        flag = 0;
+      } else {
+        await users.updateOne({username:username}, {$push:{artistFollowed: artistId}})
+        newNbOfFollowers = artist.followersListenerd + 1;
+        flag = 1;
+      }
+      await artists.updateOne({idArtist:artistId}, {$set:{followersListenerd: Number(newNbOfFollowers)}})
+      return res.status(200).json({ message: flag})
+    } else {
+      return res.status(400).json({ message: 'User must be logged' });
+    }
+  } catch(error){
+    console.error(error.message)
+    return res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+app.post('/check-follow', authUser, async (req, res) => {
+  const username = req.user.username;
+  const artistId = req.body.artistId[0];
+  let ret = -1;
+  try {
+    const users = client.db('Listenerd').collection('users'); 
+    let user = await users.findOne({username});
+    if(user != null){
+      if(user.artistFollowed != null && Array.isArray(user.artistFollowed) && (user.artistFollowed.includes(artistId))){
+        ret = 1;
+      } else {
+        ret = 0;
+      }
+      return res.status(200).json({ message: ret})
+    } else {
+      return res.status(400).json({ message: 'User must be logged' });
+    }
+  } catch(error){
+    console.error(error.message)
+    return res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+/**
+ * If in wish list : 0
+ * If in liked list : 1
+ * If in both : 2
+ * If in any : -1
+ */
+app.post('/check-list', authUser, async (req, res) => {
+  const username = req.user.username;
+  const albumId = req.body.albumId[0];
+  let ret = -1;
+  try {
+    const users = client.db('Listenerd').collection('users'); 
+    let user = await users.findOne({username});
+    if(user != null){
+      if(user.liked != null && Array.isArray(user.liked) && (user.liked.includes(albumId))){
+        ret = 1;
+      } 
+
+      if(user.toListen != null && Array.isArray(user.toListen) && (user.toListen.includes(albumId))){
+        if(ret == 1){
+          ret = 2;
+        } else {
+          ret = 0;
+        }
+      } 
+      return res.status(200).json({ message: ret})
     } else {
       return res.status(400).json({ message: 'User must be logged' });
     }

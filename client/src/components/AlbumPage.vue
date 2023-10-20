@@ -15,12 +15,13 @@
                   <span class="font-semibold">{{ albumData[7] }}</span>
                   <p class="text-lg">{{ albumData[6] }} - {{ albumData[4] }}</p>
                   <div v-if="isAuth">
-                    <a class="text-white hover:text-blue-300" href="#" @click="addAlbumToList(0)">
-                      <i class="fa-solid fa-folder-plus fa-2xl icon-add-album"></i>
+                    <a class="text-white hover:text-blue-300 aList" href="#" @click="addAlbumToList(0)">
+                      <i v-if="alreadyToListen" class="fa-solid fa-folder fa-2xl icon-add-album"></i>
+                      <i v-else class="fa-solid fa-folder-plus fa-2xl icon-add-album"></i>
                     </a>
-                    <a class="text-white hover:text-blue-300" href="#" @click="addAlbumToList(1)">
-                      <i class="fa-regular fa-heart fa-2xl icon-add-album"></i>
-                      <!-- fa-solid if already liked ?-->
+                    <a class="text-white hover:text-blue-300 aList" href="#" @click="addAlbumToList(1)">
+                      <i v-if="alreadyLiked" class="fa-solid fa-heart fa-2xl icon-add-album"></i>
+                      <i v-else class="fa-regular fa-heart fa-2xl icon-add-album"></i>
                     </a>
                   </div>
                 </div>
@@ -61,6 +62,8 @@ export default {
     return {
       albumData: [],
       isAuth: false,
+      alreadyLiked: false,
+      alreadyToListen: false,
     };
   },
   created(){
@@ -75,11 +78,35 @@ export default {
     this.getAlbumData(albumId); 
   },
   methods: {
+    checkStatus(){
+      const userId = localStorage.getItem('jwt_token');
+      axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
+      const albumId = [this.albumData[0]]
+      axios.post('http://localhost:3001/check-list', {albumId})
+        .then(response => {
+          if(response.data.message == 0){
+            this.alreadyToListen = true;
+            this.alreadyLiked = false;
+          } else if(response.data.message == 1){
+            this.alreadyLiked = true;
+            this.alreadyToListen = false;
+          } else if(response.data.message == 2){
+            this.alreadyToListen = true;
+            this.alreadyLiked = true;
+          }
+        })
+        .catch(error => {
+          console.error(error);
+        }
+      );
+    },
     getAlbumData(albumId) {
       axios.get(`http://localhost:3001/get-album?albumId=${albumId}`)
         .then(response => {
           this.albumData = response.data;
-          //load random sound
+          if(this.isAuth){
+            this.checkStatus();          
+          }
           const randomTrack = response.data[8][Math.floor(Math.random() * response.data[8].length)];
           this.loadSpotifyPlayer(randomTrack.id)
         })
@@ -109,7 +136,17 @@ export default {
       const albumDataToInsertInDB = [this.albumData[0],this.albumData[1],this.albumData[2],this.albumData[3],this.albumData[4]]
       axios.post('http://localhost:3001/add-album-to-list', {albumDataToInsertInDB,list})
         .then(response => {
-          console.log(response)
+          if(response.data.msg == -10){
+            this.alreadyToListen = false;
+          } else if(response.data.msg == 10){
+            this.alreadyToListen = true;
+          } else if(response.data.msg == -11){
+            this.alreadyLiked = false;
+          } else if(response.data.msg == 11){
+            this.alreadyLiked = true;
+          } else {
+            console.log(response.data)
+          }  
         })
         .catch(error => {
           console.error(error);

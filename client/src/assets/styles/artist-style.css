@@ -8,6 +8,18 @@
     place-items: center;
 }
 
+.followA {
+    margin-top: 1rem;
+    background-color: black;
+    padding: 1rem;
+}
+
+.icon-follow-artist {
+    color: white;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+
 iframe {
     margin-top: 2rem;
     width: 24rem;
