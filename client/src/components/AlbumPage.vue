@@ -24,6 +24,11 @@
                       <i v-else class="fa-regular fa-heart fa-2xl icon-add-album"></i>
                     </a>
                   </div>
+                  <div v-if="isAuth && alreadyLiked" class="rate-div" id="rate-div">
+                    <i class="fa-solid fa-star"></i>
+                    <input type="number" min="0" max="20" step="0.5" placeholder="0" id="input-rate" class="text-center input-rate" v-model="rate" @input="rateChange"/>
+                    <span class="span20"> / 20</span>
+                  </div>
                 </div>
             </div>
         </div>
@@ -64,6 +69,7 @@ export default {
       isAuth: false,
       alreadyLiked: false,
       alreadyToListen: false,
+      rate: 0
     };
   },
   created(){
@@ -87,13 +93,57 @@ export default {
           if(response.data.message == 0){
             this.alreadyToListen = true;
             this.alreadyLiked = false;
-          } else if(response.data.message == 1){
-            this.alreadyLiked = true;
-            this.alreadyToListen = false;
-          } else if(response.data.message == 2){
-            this.alreadyToListen = true;
-            this.alreadyLiked = true;
+          } else if(response.data.message != -1) {
+            this.rate = response.data.message.rate;
+            if(this.rate == -1){
+              this.rate = 0;
+            }
+
+            if(response.data.message.res == 1){
+              this.alreadyLiked = true;
+              this.alreadyToListen = false;
+            } else {
+              this.alreadyToListen = true;
+              this.alreadyLiked = true;
+            }
           }
+          this.$nextTick(() => {
+              if(this.rate != 0){
+                let divRate = document.getElementById("rate-div");
+                if(this.rate < 10){
+                  divRate.style.borderColor = "red";
+                } else if(this.rate >= 10 && this.rate <= 14){
+                  divRate.style.borderColor = "orange";
+                } else if(this.rate >= 15 && this.rate <= 18) {
+                  divRate.style.borderColor = "green";
+                } else {
+                  divRate.style.borderColor = "#ffc400";
+                }
+              }
+            });
+        })
+        .catch(error => {
+          console.error(error);
+        }
+      );
+    },
+    rateChange(){    
+      let divRate = document.getElementById("rate-div");
+      if(this.rate < 10){
+        divRate.style.borderColor = "red";
+      } else if(this.rate >= 10 && this.rate <= 14){
+        divRate.style.borderColor = "orange";
+      } else if(this.rate >= 15 && this.rate <= 18) {
+        divRate.style.borderColor = "green";
+      } else {
+        divRate.style.borderColor = "#ffc400";
+      }
+      const userId = localStorage.getItem('jwt_token');
+      axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
+      const dataToSend = [this.albumData[0], this.rate]
+      axios.post('http://localhost:3001/change-rate', {dataToSend})
+        .then(response => {
+          console.log(response);
         })
         .catch(error => {
           console.error(error);
@@ -142,6 +192,7 @@ export default {
             this.alreadyToListen = true;
           } else if(response.data.msg == -11){
             this.alreadyLiked = false;
+            this.rate = 0;
           } else if(response.data.msg == 11){
             this.alreadyLiked = true;
           } else {

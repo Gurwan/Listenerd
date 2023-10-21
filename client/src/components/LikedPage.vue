@@ -6,6 +6,7 @@
           <img :src="data[3]" alt="Image" class="max-w-full h-auto w-64 md:w-48 lg:w-32 xl:w-24 mb-2 mx-auto"> 
           <p class="font-bold">{{ data[1] }}</p>
           <p class="text-gray-600">{{ data[2][1] }} - {{ data[4] }}</p>
+          <p v-if="data[5] != -1" class="font-bold rate-value-id">{{ data[5] }}/20</p>
         </router-link>
       </div>
   </div>

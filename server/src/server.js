@@ -390,7 +390,7 @@ app.get('/user-profile', authUser, async (req, res) => {
     }
     if(user.liked.length >= 3){
       for(let i=0;i<3;i++){
-        let album = await albums.findOne({ idAlbum: user.liked[i] });
+        let album = await albums.findOne({ idAlbum: user.liked[i].id });
         preview[1].push(album.cover);
       }
     }
@@ -420,10 +420,11 @@ app.get('/user-list', authUser, async (req, res) => {
       ret.push([album.idAlbum, album.title, [album.artistId, artist.name], album.cover, album.releaseDate]);
     }
   } else if(list == 1) {
+    user.liked.sort((a, b) => b.rate - a.rate);
     for(let i=0;i<user.liked.length;i++){
-      let album = await albums.findOne({ idAlbum: user.liked[i] });
+      let album = await albums.findOne({ idAlbum: user.liked[i].id });
       let artist = await artists.findOne({ idArtist: album.artistId });
-      ret.push([album.idAlbum, album.title, [album.artistId, artist.name], album.cover, album.releaseDate]);
+      ret.push([album.idAlbum, album.title, [album.artistId, artist.name], album.cover, album.releaseDate, user.liked[i].rate]);
     }
   } else {
     //artist followed
@@ -502,12 +503,13 @@ app.post('/add-album-to-list', authUser, async (req, res) => {
           return res.status(200).json({ msg: 10 });
         }
       } else {
-        if(user.liked.includes(albumId)){
+        if(user.liked.some(album => album.id === albumId)){
           //delete the album of the liked list
-          await users.updateOne({username:username},{$pull: {liked: albumId}});
+          await users.updateOne({username:username},{$pull: {liked: {id: albumId}}});
           return res.status(200).json({ msg: -11 });
         } else {
-          await users.updateOne({username:username},{$push: {liked: albumId}});
+          let albumLiked = {id: albumId, rate: -1}
+          await users.updateOne({username:username},{$push: {liked: albumLiked}});
           return res.status(200).json({ msg: 11 });
         }
       } 
@@ -597,18 +599,39 @@ app.post('/check-list', authUser, async (req, res) => {
     const users = client.db('Listenerd').collection('users'); 
     let user = await users.findOne({username});
     if(user != null){
-      if(user.liked != null && Array.isArray(user.liked) && (user.liked.includes(albumId))){
-        ret = 1;
+      if(user.liked != null && Array.isArray(user.liked) && (user.liked.some(album => album.id === albumId))){
+        ret = {res: 1, rate: user.liked.find(album => album.id === albumId).rate};
       } 
 
       if(user.toListen != null && Array.isArray(user.toListen) && (user.toListen.includes(albumId))){
-        if(ret == 1){
-          ret = 2;
+        if(ret != 1){
+          ret = {res: 2, rate: user.liked.find(album => album.id === albumId).rate};
         } else {
           ret = 0;
         }
       } 
       return res.status(200).json({ message: ret})
+    } else {
+      return res.status(400).json({ message: 'User must be logged' });
+    }
+  } catch(error){
+    console.error(error.message)
+    return res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+app.post('/change-rate', authUser, async (req, res) => {
+  const username = req.user.username;
+  const albumId = req.body.dataToSend[0];
+  const newRate = req.body.dataToSend[1];
+  try {
+    const users = client.db('Listenerd').collection('users'); 
+    let user = await users.findOne({username});
+    if(user != null){
+      if(user.liked != null && Array.isArray(user.liked) && (user.liked.some(album => album.id === albumId))){
+        await users.updateOne({username: username,'liked.id': albumId}, {$set: {'liked.$.rate': newRate}});
+      } 
+      return res.status(200).json({ message: 1})
     } else {
       return res.status(400).json({ message: 'User must be logged' });
     }
