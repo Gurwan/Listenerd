@@ -124,9 +124,16 @@ app.get('/search', async (req, res) => {
 });
 
 //albums shown on the home page
-app.get('/new-releases', async (req, res) => {
+app.get('/new-releases', authUser, async (req, res) => {
+  let country = 'IE'
+  if(req.user != undefined && req.user != null){
+    const username = req.user.username;
+    const users = client.db('Listenerd').collection('users'); 
+    const user = await users.findOne({ username: username });
+    country = user.country;
+  }
   const accessTokenSpotify = await getSpotifyAccessToken();
-  axios.get(`https://api.spotify.com/v1/browse/new-releases?country=FR&limit=50&offset=0`, {
+  axios.get(`https://api.spotify.com/v1/browse/new-releases?country=${country}&limit=50&offset=0`, {
     headers: {
       Authorization: `Bearer ${accessTokenSpotify}`,
     },
@@ -631,6 +638,24 @@ app.post('/change-rate', authUser, async (req, res) => {
       if(user.liked != null && Array.isArray(user.liked) && (user.liked.some(album => album.id === albumId))){
         await users.updateOne({username: username,'liked.id': albumId}, {$set: {'liked.$.rate': newRate}});
       } 
+      return res.status(200).json({ message: 1})
+    } else {
+      return res.status(400).json({ message: 'User must be logged' });
+    }
+  } catch(error){
+    console.error(error.message)
+    return res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+app.post('/change-country', authUser, async (req, res) => {
+  const username = req.user.username;
+  const newCountry = req.body.dataToSend;
+  try {
+    const users = client.db('Listenerd').collection('users'); 
+    let user = await users.findOne({username});
+    if(user != null){
+      await users.updateOne({username: username}, {$set: {'country': newCountry}});
       return res.status(200).json({ message: 1})
     } else {
       return res.status(400).json({ message: 'User must be logged' });

@@ -44,6 +44,8 @@ export default {
     }
   },
   mounted() {
+    const userId = localStorage.getItem('jwt_token');
+    axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
     axios.get('http://localhost:3001/new-releases')
     .then((response) => this.refreshData(response))
     .catch(error => {

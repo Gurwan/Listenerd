@@ -35,6 +35,16 @@
             </router-link>
           </div>
         </div>
+        <div class="change-country-super-div">
+          <div class="change-country-div">
+            <label for="countrySelect" class="block text-gray-700 text-sm font-bold mb-2">You can change you country here :</label>
+            <select id="countrySelect" v-model="country" @change="changeCountry" class="block w-full bg-white border border-gray-300 p-2 rounded">
+              <option value="IE">Ireland</option>
+              <option value="FR">France</option>
+              <option value="US">USA</option>
+            </select>
+          </div>
+        </div>
     </div>
 </template>
   
@@ -51,6 +61,7 @@ export default {
       pic: null,
       successSave: null,
       filePic: null,
+      country: "IE",
     };
   },
   created() {
@@ -62,6 +73,8 @@ export default {
         const user = response.data.user;
         const previewCovers = response.data.preview;
         this.username = user.username;
+        this.country = user.country;
+        console.log(this.country)
         if(user.profilePicture != null){
           //convert base64 to file
           //code providing from several topics on stackoverflow I guess
@@ -105,6 +118,20 @@ export default {
         this.pic = URL.createObjectURL(file);
         this.filePic = file;
       }
+    },
+    changeCountry(){
+      const userId = localStorage.getItem('jwt_token');
+      axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
+      console.log(this.country)
+      const dataToSend = this.country;
+      axios.post('http://localhost:3001/change-country', {dataToSend})
+        .then(response => {
+          console.log(response);
+        })
+        .catch(error => {
+          console.error(error);
+        }
+      );
     },
     savePic(){
       const userId = localStorage.getItem('jwt_token');
