@@ -435,11 +435,40 @@ app.get('/user-list', authUser, async (req, res) => {
     }
   } else {
     //artist followed
+    let accessTokenSpotify = await getSpotifyAccessToken();
+    let albumArtistData = []
     for(let i=0;i<user.artistFollowed.length;i++){
       let artist = await artists.findOne({ idArtist: user.artistFollowed[i] });
-      ret.push([artist.idArtist, artist.name, artist.picture]);
-      //TODO -> Implement new albums for 1 year for this artist
+      let artistId = artist.idArtist;
+      let sizeAlbumsList = albumArtistData.length;
+      await axios.get(`https://api.spotify.com/v1/artists/${artistId}/albums`, {
+          headers: {
+          Authorization: `Bearer ${accessTokenSpotify}`,
+        },
+      }).then((response) => {
+          const albums = response.data.items;
+          let j = 0;
+          while(j < albums.length){
+            let releaseDateFormat = new Date(albums[j].release_date);
+            let todayDate = new Date();
+            //1000 ms in a s, 60s in a m, 60m in an hour and 24 hour in a day 
+            var differentInDays = Math.floor((todayDate - releaseDateFormat) / (1000 * 60 * 60 * 24));;
+            if(differentInDays <= 365){
+              albumArtistData.push([albums[j].id,albums[j].name,albums[j].album_type,albums[j].release_date,albums[j].images[0].url,[artist.idArtist, artist.name, artist.picture]])
+            }
+            j = j+1;
+          }
+      });
+      if(sizeAlbumsList == albumArtistData.length){
+        albumArtistData.push([null,null,null,null,null,[artist.idArtist, artist.name, artist.picture]])
+      }
     }
+    albumArtistData.sort((el1, el2) => {
+      const el1d = new Date(el1[3]);
+      const el2d = new Date(el2[3]);
+      return el2d - el1d;
+    });
+    ret.push(albumArtistData);
   }
   res.send(ret)
 });

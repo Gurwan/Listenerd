@@ -6,14 +6,47 @@
 
 .grid-list-artist {
     display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 0.1rem;
+    padding: 1rem;
+}
+
+.scale-loader {
+  margin-top: 5rem;
+}
+
+.any-release-artist-div {
+  margin-top: 2rem;
+  padding: 2rem;
 }
 
 .artist-img {
     width: 5rem;
     height: 5rem;
     padding: 0;
+}
+
+.artist-img-without {
+  width: 10rem;
+  height: 10rem;
+  padding: 0;
+}
+
+h2 {
+  margin-bottom: 2rem;
+}
+
+.artist-small-view {
+  position: absolute;
+  bottom: -1rem;
+  right: 1rem;
+}
+
+@media (min-width: 1000px) and (max-width: 1500px) {
+  .artist-small-view {
+    bottom: -2rem;
+    right: -1.5rem;
+  }
 }
   
 @media (min-width: 750px) and (max-width: 1000px) {
@@ -22,6 +55,10 @@
   }
   .grid-list-artist {
     grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .artist-small-view {
+    bottom: -1rem;
+    right: 0rem;
   }
 }
 
@@ -32,7 +69,11 @@
     .grid-list-artist {
       grid-template-columns: repeat(4, minmax(0, 1fr));
     }
-  }
+    .artist-small-view {
+      bottom: -2rem;
+      right: -0.5rem;
+    }
+}
 
 @media (min-width: 220px) and (max-width: 449px) {
     .grid-list {
@@ -43,6 +84,27 @@
     }
 }
 
+@media (min-width: 380px) and (max-width: 449px){
+  .artist-small-view {
+    bottom: -2rem;
+    right: 4rem;
+  }
+}
+
+@media (min-width: 325px) and (max-width: 380px){
+  .artist-small-view {
+    bottom: -2rem;
+    right: 2rem;
+  }
+}
+
+@media (min-width: 220px) and (max-width: 325px){
+  .artist-small-view {
+    bottom: -2rem;
+    right: -1rem;
+  }
+}
+
 @media (max-width: 220px) {
     .grid-list {
       grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
@@ -50,4 +112,13 @@
     .grid-list-artist {
       grid-template-columns: repeat(1, minmax(0, 1fr));
     }
+    .artist-small-view {
+      bottom: -2rem;
+      right: 0rem;
+    }
+    .artist-img {
+      width: 4rem;
+      height: 4rem;
+      padding: 0;
+  }
 }

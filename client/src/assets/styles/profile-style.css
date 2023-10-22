@@ -97,10 +97,19 @@ button {
         background-size: 50%,50%,0%;
         background-position: left, right, right; 
     }
+    .list-preview-artist {
+        background-size: 50%,50%,0%;
+        background-position: left, right, right; 
+    }
 }
 
 @media (max-width: 650px) {
     .list-preview {
+        background-size: 100%,0%,0%;
+        background-position: center, right, right; 
+        margin: 1rem;
+    }
+    .list-preview-artist {
         background-size: 100%,0%,0%;
         background-position: center, right, right; 
         margin: 1rem;
