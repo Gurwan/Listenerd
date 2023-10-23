@@ -66,9 +66,10 @@ export default {
           this.followStatus = response.data.message;
         })
         .catch(error => {
-          console.error(error);
-        }
-      );
+          if(error != null){
+            this.$router.push('/logout') 
+          }
+        });
     },
     followUnfollowArtist(){
       const userId = localStorage.getItem('jwt_token');
@@ -86,9 +87,10 @@ export default {
           }
         })
         .catch(error => {
-          console.error(error);
-        }
-      );
+          if(error != null){
+            this.$router.push('/logout') 
+          }
+        });
     },
     getArtistData(artistId) {
       axios.get(`http://localhost:3001/get-artist?artistId=${artistId}`)

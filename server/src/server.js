@@ -6,14 +6,12 @@ const querystring = require('querystring');
 const cors = require('cors'); 
 const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-const e = require('express');
 const bcrypt = require('bcrypt');
 const app = express();
 const port = 3001;
 const User = require('../models/User')
 const Album = require('../models/Album')
 const Artist = require('../models/Artist');
-const { unsubscribe } = require('diagnostics_channel');
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
@@ -36,55 +34,69 @@ async function run() {
 run().catch(console.dir);
 
 async function getSpotifyAccessToken(){
-  try {
-    await client.connect();
-    const data = await client.db("Listenerd").collection("spotifyAuth").findOne();
-    if (data) {
-      const currentTime = new Date();
-      //1 hour
-      if ((currentTime - data.date) > 3600000) {
-        const refresh_token = data.refresh_token;
-        const client_id = `${config.spotify.clientId}`;
-        const client_secret = `${config.spotify.clientSecret}`;
-    
-        //code providing by spotify API
-        var requestData = {
-          url: 'https://accounts.spotify.com/api/token',
-          headers: { 'Authorization': 'Basic ' + (new Buffer.from(client_id + ':' + client_secret).toString('base64')) },
-          form: {
-            grant_type: 'refresh_token',
-            refresh_token: refresh_token
-          },
-          json: true
-        };
-    
-        request.post(requestData, async function (e, response, body) {
-          if (response.statusCode === 200) {
-            var access_token = body.access_token;
-            
-            const newAccessToken = {
-              $set: {
-                access_token: access_token,
-                date: new Date()
-              }
-            };
-    
-            let idAuth = data.idAuth
-            await client.db("Listenerd").collection("spotifyAuth").updateOne({ idAuth }, newAccessToken);
-            return access_token
-          } else {
-          }
-        });
-      } else {
-        const accessToken = data.access_token;
-        return accessToken
+  let ret = null;
+  let i = 0;
+  //if the token is refreshed we redo the operation to find the new one => not ideal way to do that
+  while(ret == null || i<2){
+    i = i + 1;
+    try {
+      await client.connect();
+      let data = await client.db("Listenerd").collection("spotifyAuth").findOne();
+      //first use of the app : implement an old token but with the good refresh_token !
+      if(!data){
+        const basicKeyToInsert = {
+          "idAuth": "w0oNPVwJMIJgNEjB",
+          "access_token": null,
+          "refresh_token": "AQD1vU9xGfuJXp5IMcifMJRI2un3qfQ-3PxZ7qIgnexksiWxB8tfxKqp1-AC2jyUP92DFV9aB7vTJtF9i0bjg9vPyqo2fT2Z5Rapg_7mklKF68DyFS0m17TCnmgSobJvuwg",
+          "date": new Date()
+        }
+        await client.db("Listenerd").collection("spotifyAuth").insertOne(basicKeyToInsert);
       }
-    } else {
-      console.log("access_token not found")
-      return null;
+      data = await client.db("Listenerd").collection("spotifyAuth").findOne();
+      if (data) {
+        const currentTime = new Date();
+        if (((currentTime -  data.date) > 3600000) || data.access_token == null) {
+          const refresh_token = data.refresh_token;
+          const client_id = `${config.spotify.clientId}`;
+          const client_secret = `${config.spotify.clientSecret}`;
+      
+          //code providing by spotify API
+          var requestData = {
+            url: 'https://accounts.spotify.com/api/token',
+            headers: { 'Authorization': 'Basic ' + (new Buffer.from(client_id + ':' + client_secret).toString('base64')) },
+            form: {
+              grant_type: 'refresh_token',
+              refresh_token: refresh_token
+            },
+            json: true
+          };
+      
+          request.post(requestData, async function (e, response, body) {
+            if (response.statusCode === 200) {
+              var access_token = body.access_token;
+              
+              const newAccessToken = {
+                $set: {
+                  access_token: access_token,
+                  date: new Date()
+                }
+              };
+      
+              let idAuth = data.idAuth
+              await client.db("Listenerd").collection("spotifyAuth").updateOne({ idAuth }, newAccessToken);
+              ret = access_token;
+            } 
+          });
+        } else {
+          ret = data.access_token;
+        }
+      } else {
+        console.log("access_token not found")
+      }
+    } finally {
     }
-  } finally {
   }
+  return ret;
 }
 
 function formatAlbum(response){
@@ -377,8 +389,16 @@ function authUser(req, res, next) {
   const token = authHeader && authHeader.split(' ')[1];
 
   jwt.verify(token, 'listenerd_secret_key', (err, user) => {
-    req.user = user;
-    next(); 
+    //if token is null the request is for the main tab (public access)
+    if(((req.route.path) == "/new-releases") || token != null && user != undefined){
+      req.user = user;
+      next(); 
+    } else {
+      //if token is not null but the user is that means that the token has expired
+      console.log("Token expired, user will be disconnect")
+      res.status(401)
+      res.send("Token expired")
+    }
   });
 }
 

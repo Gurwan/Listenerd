@@ -33,7 +33,7 @@
           <img class="artist-img-without" :src="data[7]" alt="Image"> 
           <p class="font-bold">{{ data[6] }}</p>
         </router-link>
-      </div>
+      </div> 
       </div>
 
   </div>
@@ -79,7 +79,9 @@ created(){
       }
     })
     .catch(error => {
-      console.error(error);
+        if(error != null){
+          this.$router.push('/logout') 
+        }
     });
 },
 };

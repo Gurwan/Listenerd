@@ -74,7 +74,6 @@ export default {
         const previewCovers = response.data.preview;
         this.username = user.username;
         this.country = user.country;
-        console.log(this.country)
         if(user.profilePicture != null){
           //convert base64 to file
           //code providing from several topics on stackoverflow I guess
@@ -103,7 +102,9 @@ export default {
         }
       })
       .catch(error => {
-        console.error(error);
+        if(error != null){
+          this.$router.push('/logout') 
+        }
       });
   },
   
@@ -129,7 +130,9 @@ export default {
           console.log(response);
         })
         .catch(error => {
-          console.error(error);
+          if(error != null){
+            this.$router.push('/logout') 
+          }        
         }
       );
     },
@@ -150,7 +153,9 @@ export default {
             }
           })
           .catch(error => {
-            console.error(error);
+            if(error != null){
+              this.$router.push('/logout') 
+            }
           });
         };
         reader.readAsDataURL(this.filePic);

@@ -39,7 +39,9 @@ created(){
       console.log(this.albumsValues)
     })
     .catch(error => {
-      console.error(error);
+        if(error != null){
+          this.$router.push('/logout') 
+        }
     });
 },
 };

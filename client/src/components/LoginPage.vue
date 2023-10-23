@@ -6,10 +6,10 @@
         <h2 class="text-2xl font-semibold mb-4">Login</h2>
         <form @submit.prevent="login">
           <div class="mb-4">
-            <input type="text" placeholder="Username" id="username" v-model="username" class="form-input">
+            <input type="text" placeholder="Username" id="username" v-model="username" class="form-input" @keyup.enter="login">
           </div>
           <div class="mb-4">
-            <input type="password" placeholder="Password" id="password" v-model="password" class="form-input">
+            <input type="password" placeholder="Password" id="password" v-model="password" class="form-input" @keyup.enter="login">
           </div>
           <div class="mt-6">
             <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline-blue focus:border-blue-300">

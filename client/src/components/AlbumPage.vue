@@ -123,9 +123,10 @@ export default {
             });
         })
         .catch(error => {
-          console.error(error);
-        }
-      );
+        if(error != null){
+            this.$router.push('/logout') 
+          }
+        });
     },
     rateChange(){    
       let divRate = document.getElementById("rate-div");
@@ -146,9 +147,10 @@ export default {
           console.log(response);
         })
         .catch(error => {
-          console.error(error);
+        if(error != null){
+          this.$router.push('/logout') 
         }
-      );
+      });
     },
     getAlbumData(albumId) {
       axios.get(`http://localhost:3001/get-album?albumId=${albumId}`)
@@ -200,9 +202,10 @@ export default {
           }  
         })
         .catch(error => {
-          console.error(error);
-        }
-      );
+          if(error != null){
+            this.$router.push('/logout') 
+          }
+        });
     },
   },
 };
