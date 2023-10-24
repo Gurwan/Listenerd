@@ -6,7 +6,8 @@
           <img :src="data[3]" alt="Image" class="max-w-full h-auto w-64 md:w-48 lg:w-32 xl:w-24 mb-2 mx-auto"> 
           <p class="font-bold">{{ data[1] }}</p>
           <p class="text-gray-600">{{ data[2][1] }} - {{ data[4] }}</p>
-          <p v-if="data[5] != -1" class="font-bold rate-value-id">{{ data[5] }}/20</p>
+          <p v-if="data[5] != -1 && params.scale != 'empty'" class="font-bold rate-value-id">{{ data[5] }} {{ params.scale }}</p>
+          <p v-if="data[5] != -1 && params.scale == 'empty'" class="font-bold rate-value-id">{{ data[5] }}</p>
         </router-link>
       </div>
   </div>
@@ -22,6 +23,7 @@ components: {
 data() {
   return {
     albumsValues: [],
+    params: null
   };
 },
 created(){
@@ -30,13 +32,13 @@ created(){
 
   axios.get('http://localhost:3001/user-list?list=1')
     .then(response => {
-      const allData = response.data;
+      this.params = response.data.userParams;
+      const allData = response.data.ret;
       if (Array.isArray(allData) && allData.length > 0) {
         this.albumsValues = allData;
       } else {
         console.error('API data error');
       }
-      console.log(this.albumsValues)
     })
     .catch(error => {
         if(error != null){

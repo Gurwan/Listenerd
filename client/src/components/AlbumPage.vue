@@ -27,7 +27,7 @@
                   <div v-if="isAuth && alreadyLiked" class="rate-div" id="rate-div">
                     <i class="fa-solid fa-star"></i>
                     <input type="number" min="0" max="20" step="0.5" placeholder="0" id="input-rate" class="text-center input-rate" v-model="rate" @input="rateChange"/>
-                    <span class="span20"> / 20</span>
+                    <span v-if="params.scale != 'empty'" class="span20">{{params.scale}}</span>
                   </div>
                 </div>
             </div>
@@ -69,7 +69,8 @@ export default {
       isAuth: false,
       alreadyLiked: false,
       alreadyToListen: false,
-      rate: 0
+      rate: 0,
+      params: null
     };
   },
   created(){
@@ -90,6 +91,9 @@ export default {
       const albumId = [this.albumData[0]]
       axios.post('http://localhost:3001/check-list', {albumId})
         .then(response => {
+          if(response.data.params != undefined && response.data.params != null){
+            this.params = response.data.params;
+          }
           if(response.data.message == 0){
             this.alreadyToListen = true;
             this.alreadyLiked = false;
@@ -110,14 +114,15 @@ export default {
           this.$nextTick(() => {
               if(this.rate != 0){
                 let divRate = document.getElementById("rate-div");
-                if(this.rate < 10){
-                  divRate.style.borderColor = "red";
-                } else if(this.rate >= 10 && this.rate <= 14){
-                  divRate.style.borderColor = "orange";
-                } else if(this.rate >= 15 && this.rate <= 18) {
-                  divRate.style.borderColor = "green";
-                } else {
-                  divRate.style.borderColor = "#ffc400";
+
+                if(this.rate >= this.params.gap[0][0] && this.rate < this.params.gap[0][1]){
+                  divRate.style.borderColor = this.params.gap[0][2];
+                } else if(this.rate >= this.params.gap[1][0] && this.rate <= this.params.gap[1][1]){
+                  divRate.style.borderColor = this.params.gap[1][2];
+                } else if(this.rate >= this.params.gap[2][0] && this.rate <= this.params.gap[2][1]) {
+                  divRate.style.borderColor = this.params.gap[2][2];
+                } else if(this.rate >= this.params.gap[3][0] && this.rate <= this.params.gap[3][1]) {
+                  divRate.style.borderColor = this.params.gap[3][2];
                 }
               }
             });
@@ -130,14 +135,14 @@ export default {
     },
     rateChange(){    
       let divRate = document.getElementById("rate-div");
-      if(this.rate < 10){
-        divRate.style.borderColor = "red";
-      } else if(this.rate >= 10 && this.rate <= 14){
-        divRate.style.borderColor = "orange";
-      } else if(this.rate >= 15 && this.rate <= 18) {
-        divRate.style.borderColor = "green";
-      } else {
-        divRate.style.borderColor = "#ffc400";
+      if(this.rate >= this.params.gap[0][0] && this.rate < this.params.gap[0][1]){
+        divRate.style.borderColor = this.params.gap[0][2];
+      } else if(this.rate >= this.params.gap[1][0] && this.rate <= this.params.gap[1][1]){
+        divRate.style.borderColor = this.params.gap[1][2];
+      } else if(this.rate >= this.params.gap[2][0] && this.rate <= this.params.gap[2][1]) {
+        divRate.style.borderColor = this.params.gap[2][2];
+      } else if(this.rate >= this.params.gap[3][0] && this.rate <= this.params.gap[3][1]) {
+        divRate.style.borderColor = this.params.gap[3][2];
       }
       const userId = localStorage.getItem('jwt_token');
       axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;

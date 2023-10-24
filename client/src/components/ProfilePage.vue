@@ -35,15 +35,48 @@
             </router-link>
           </div>
         </div>
-        <div class="change-country-super-div">
-          <div class="change-country-div">
-            <label for="countrySelect" class="block text-gray-700 text-sm font-bold mb-2">You can change you country here :</label>
+        <div class="change-super-div">
+          <div class="change-div">
+            <label for="countrySelect" class="block text-gray-700 text-sm font-bold mb-2">You can change you country here </label>
             <select id="countrySelect" v-model="country" @change="changeCountry" class="block w-full bg-white border border-gray-300 p-2 rounded">
               <option value="IE">Ireland</option>
               <option value="FR">France</option>
               <option value="US">USA</option>
             </select>
           </div>
+        </div>
+        <div class="change-super-div">
+          <div class="change-div">
+            <label for="scaleSelect" class="block text-gray-700 text-sm font-bold mb-2">You can change the scale of your rates here </label>
+            <select id="scaleSelect" v-model="params.scale" @change="changeScale" class="block w-full bg-white border border-gray-300 p-2 rounded">
+              <option value="/ 20">/ 20</option>
+              <option value="/ 10">/ 10</option>
+              <option value="/ 5">/ 5</option>
+              <option value="empty">Empty</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="block text-gray-700 text-sm font-bold mb-2">Change the colors and the ranges</h3>
+          <div>
+              <div v-for="(item, i) in params.gap" :key="i" class="change-div-range">
+                <div class="param-gap-div">
+                  <label>Low limit</label>
+                  <input type="number" v-model="item[0]" class="w-20" />
+                </div>
+                <div class="param-gap-div">
+                  <label>Upper limit</label>
+                  <input type="number" v-model="item[1]" class="w-20" />
+                </div>
+                <div class="param-gap-div">
+                  <label>Color</label>
+                  <input type="text" v-model="item[2]" class="w-32" />
+                </div>
+              </div>
+          </div>
+
+          <button @click="saveRange" class="bg-blue-500 text-white px-4 py-2 rounded">Save the range</button>
         </div>
     </div>
 </template>
@@ -62,6 +95,10 @@ export default {
       successSave: null,
       filePic: null,
       country: "IE",
+      params: {
+        scale: null,
+        gap: []
+      }
     };
   },
   created() {
@@ -72,6 +109,8 @@ export default {
       .then(async response => {
         const user = response.data.user;
         const previewCovers = response.data.preview;
+        this.params = response.data.params;
+        console.log(response.data.params.scale)
         this.username = user.username;
         this.country = user.country;
         if(user.profilePicture != null){
@@ -104,11 +143,27 @@ export default {
       .catch(error => {
         if(error != null){
           this.$router.push('/logout') 
+          console.log(error)
         }
       });
   },
   
   methods: {
+    saveRange(){
+      const userId = localStorage.getItem('jwt_token');
+      axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
+      const dataToSend = this.params.gap;
+      axios.post('http://localhost:3001/change-gap', {dataToSend})
+        .then(response => {
+          console.log(response);
+        })
+        .catch(error => {
+          if(error != null){
+            this.$router.push('/logout') 
+          }        
+        }
+      );
+    },
     chooseNewPic(){
       this.$refs.fileInput.click();
       document.getElementById("saveNewPicId").style.display = "inline";
@@ -123,7 +178,6 @@ export default {
     changeCountry(){
       const userId = localStorage.getItem('jwt_token');
       axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
-      console.log(this.country)
       const dataToSend = this.country;
       axios.post('http://localhost:3001/change-country', {dataToSend})
         .then(response => {
@@ -132,6 +186,23 @@ export default {
         .catch(error => {
           if(error != null){
             this.$router.push('/logout') 
+          }        
+        }
+      );
+    },
+    changeScale(){
+      const userId = localStorage.getItem('jwt_token');
+      axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
+      console.log(this.params.scale)
+      const dataToSend = this.params.scale;
+      axios.post('http://localhost:3001/change-scale', {dataToSend})
+        .then(response => {
+          console.log(response);
+        })
+        .catch(error => {
+          if(error != null){
+            this.$router.push('/logout') 
+            console.log("error")
           }        
         }
       );

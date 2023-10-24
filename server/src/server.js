@@ -10,6 +10,7 @@ const bcrypt = require('bcrypt');
 const app = express();
 const port = 3001;
 const User = require('../models/User')
+const UserParams = require('../models/UserParams')
 const Album = require('../models/Album')
 const Artist = require('../models/Artist');
 
@@ -334,6 +335,7 @@ app.post('/register', async (req,res) => {
 
   try {
     const users = client.db('Listenerd').collection('users'); 
+    const users_params = client.db('Listenerd').collection('users-params'); 
     let user = await users.findOne({username});
     if(user == null){
       const salt = await bcrypt.genSalt(10);
@@ -341,6 +343,8 @@ app.post('/register', async (req,res) => {
 
       user = new User(username,cryptedPassword)
       await users.insertOne(user);
+      let userParams = new UserParams(username);
+      await users_params.insertOne(userParams)
 
       jwt.sign({user:{id: user.id}},'listenerd_secret_key',
        {expiresIn: 7200}, (err, token) => {
@@ -405,7 +409,9 @@ function authUser(req, res, next) {
 app.get('/user-profile', authUser, async (req, res) => {
   const username = req.user.username;
   const users = client.db('Listenerd').collection('users'); 
+  const users_params = client.db('Listenerd').collection('users-params'); 
   const user = await users.findOne({ username: username });
+  const params = await users_params.findOne({username: username});
   const preview = [[],[], []];
   if(user.toListen != [] || user.liked != []){
     const albums = client.db('Listenerd').collection('albums'); 
@@ -429,7 +435,7 @@ app.get('/user-profile', authUser, async (req, res) => {
       }
     }
   }
-  res.send({user,preview})
+  res.send({user,preview,params})
 });
 
 app.get('/user-list', authUser, async (req, res) => {
@@ -440,6 +446,7 @@ app.get('/user-list', authUser, async (req, res) => {
   const albums = client.db('Listenerd').collection('albums'); 
   const artists = client.db('Listenerd').collection('artists'); 
   let ret = []
+  let userParams = null;
   if(list == 0){
     for(let i=0;i<user.toListen.length;i++){
       let album = await albums.findOne({ idAlbum: user.toListen[i] });
@@ -447,6 +454,8 @@ app.get('/user-list', authUser, async (req, res) => {
       ret.push([album.idAlbum, album.title, [album.artistId, artist.name], album.cover, album.releaseDate]);
     }
   } else if(list == 1) {
+    const users_params = client.db('Listenerd').collection('users-params'); 
+    userParams = await users_params.findOne({username: username});
     user.liked.sort((a, b) => b.rate - a.rate);
     for(let i=0;i<user.liked.length;i++){
       let album = await albums.findOne({ idAlbum: user.liked[i].id });
@@ -490,7 +499,11 @@ app.get('/user-list', authUser, async (req, res) => {
     });
     ret.push(albumArtistData);
   }
-  res.send(ret)
+  if(userParams == null){
+    res.send(ret)
+  } else {
+    res.send({ret,userParams})
+  }
 });
 
 app.post('/user-save-profile-picture', authUser, async (req, res) => {
@@ -655,6 +668,9 @@ app.post('/check-list', authUser, async (req, res) => {
     const users = client.db('Listenerd').collection('users'); 
     let user = await users.findOne({username});
     if(user != null){
+      const users_params = client.db('Listenerd').collection('users-params'); 
+      const userParams = await users_params.findOne({username: username});
+
       if(user.liked != null && Array.isArray(user.liked) && (user.liked.some(album => album.id === albumId))){
         ret = {res: 1, rate: user.liked.find(album => album.id === albumId).rate};
       } 
@@ -666,7 +682,7 @@ app.post('/check-list', authUser, async (req, res) => {
           ret = 0;
         }
       } 
-      return res.status(200).json({ message: ret})
+      return res.status(200).json({ message: ret, params: userParams})
     } else {
       return res.status(400).json({ message: 'User must be logged' });
     }
@@ -705,6 +721,42 @@ app.post('/change-country', authUser, async (req, res) => {
     let user = await users.findOne({username});
     if(user != null){
       await users.updateOne({username: username}, {$set: {'country': newCountry}});
+      return res.status(200).json({ message: 1})
+    } else {
+      return res.status(400).json({ message: 'User must be logged' });
+    }
+  } catch(error){
+    console.error(error.message)
+    return res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+app.post('/change-scale', authUser, async (req, res) => {
+  const username = req.user.username;
+  const newScale = req.body.dataToSend;
+  try {
+    const users_params = client.db('Listenerd').collection('users-params'); 
+    let userParams = await users_params.findOne({username: username});
+    if(userParams != null){
+      await users_params.updateOne({username: username}, {$set: {'scale': newScale}});
+      return res.status(200).json({ message: 1})
+    } else {
+      return res.status(400).json({ message: 'User must be logged' });
+    }
+  } catch(error){
+    console.error(error.message)
+    return res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+app.post('/change-gap', authUser, async (req, res) => {
+  const username = req.user.username;
+  const newGap = req.body.dataToSend;
+  try {
+    const users_params = client.db('Listenerd').collection('users-params'); 
+    let userParams = await users_params.findOne({username: username});
+    if(userParams != null){
+      await users_params.updateOne({username: username}, {$set: {'gap': newGap}});
       return res.status(200).json({ message: 1})
     } else {
       return res.status(400).json({ message: 'User must be logged' });
