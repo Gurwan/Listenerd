@@ -5,9 +5,9 @@ const config = require('../../config/config')
 const querystring = require('querystring');
 const cors = require('cors'); 
 const jwt = require('jsonwebtoken');
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const bcrypt = require('bcrypt');
 const app = express();
+const { MongoClient, ObjectId } = require('mongodb');
 const port = 3001;
 const User = require('../models/User')
 const UserParams = require('../models/UserParams')
@@ -18,20 +18,18 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
 const uri = "mongodb://localhost:27017";
-
 const client = new MongoClient(uri);
-
+let db;
 async function run() {
-  try {
-    await client.connect();
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
-  } catch (e) {
-    console.log(e)
-  } finally {
-    //await client.close();
+    try {
+      let connection = await client.connect();
+      db = connection.db('Listenerd');
+      await client.db("admin").command({ ping: 1 });
+      console.log("Pinged your database. You successfully connected to MongoDB!");
+    } catch (e) {
+      console.log(e)
+    }
   }
-}
 run().catch(console.dir);
 
 async function getSpotifyAccessToken(){
@@ -42,7 +40,7 @@ async function getSpotifyAccessToken(){
     i = i + 1;
     try {
       await client.connect();
-      let data = await client.db("Listenerd").collection("spotifyAuth").findOne();
+      let data = await db.collection("spotifyAuth").findOne();
       //first use of the app : implement an old token but with the good refresh_token !
       if(!data){
         const basicKeyToInsert = {
@@ -51,9 +49,9 @@ async function getSpotifyAccessToken(){
           "refresh_token": "AQD1vU9xGfuJXp5IMcifMJRI2un3qfQ-3PxZ7qIgnexksiWxB8tfxKqp1-AC2jyUP92DFV9aB7vTJtF9i0bjg9vPyqo2fT2Z5Rapg_7mklKF68DyFS0m17TCnmgSobJvuwg",
           "date": new Date()
         }
-        await client.db("Listenerd").collection("spotifyAuth").insertOne(basicKeyToInsert);
+        await db.collection("spotifyAuth").insertOne(basicKeyToInsert);
       }
-      data = await client.db("Listenerd").collection("spotifyAuth").findOne();
+      data = await db.collection("spotifyAuth").findOne();
       if (data) {
         const currentTime = new Date();
         if (((currentTime -  data.date) > 3600000) || data.access_token == null) {
@@ -84,7 +82,7 @@ async function getSpotifyAccessToken(){
               };
       
               let idAuth = data.idAuth
-              await client.db("Listenerd").collection("spotifyAuth").updateOne({ idAuth }, newAccessToken);
+              await db.collection("spotifyAuth").updateOne({ idAuth }, newAccessToken);
               ret = access_token;
             } 
           });
@@ -114,9 +112,6 @@ function formatAlbum(response){
   return arrayAlbum
 }
 
-//to separate name of artist and album
-const regexArtistAlbum = /(.+?)(?:\s+\(\d+\))? - (.+)/;
-
 app.get('/search', async (req, res) => {
   let accessTokenSpotify = null;
   while(accessTokenSpotify == null){
@@ -141,7 +136,7 @@ app.get('/new-releases', authUser, async (req, res) => {
   let country = 'IE'
   if(req.user != undefined && req.user != null){
     const username = req.user.username;
-    const users = client.db('Listenerd').collection('users'); 
+    const users = await db.collection('users'); 
     const user = await users.findOne({ username: username });
     country = user.country;
   }
@@ -210,7 +205,7 @@ app.get('/get-artist', async (req, res) => {
     } else {
       followers = data.followers.total.toString();
     }
-    const artists = client.db('Listenerd').collection('artists'); 
+    const artists = await db.collection('artists'); 
     let followersOnListenerd = await artists.findOne({ idArtist: data.id });
     if(followersOnListenerd != null || followersOnListenerd != undefined){
       followersOnListenerd = followersOnListenerd.followersListenerd;
@@ -304,7 +299,7 @@ app.get('/user-auth-spotify-callback', async function(req, res) {
 
         try {
           await client.connect();
-          await client.db('Listenerd').collection('spotifyAuth').insertOne(dataToDB);
+          await db.collection('spotifyAuth').insertOne(dataToDB);
           console.log("Access token generated and added to the db")
         } finally {}
       }
@@ -334,8 +329,8 @@ app.post('/register', async (req,res) => {
   const {username, password} = req.body;
 
   try {
-    const users = client.db('Listenerd').collection('users'); 
-    const users_params = client.db('Listenerd').collection('users-params'); 
+    const users = await db.collection('users'); 
+    const users_params = await db.collection('users-params'); 
     let user = await users.findOne({username});
     if(user == null){
       const salt = await bcrypt.genSalt(10);
@@ -349,7 +344,7 @@ app.post('/register', async (req,res) => {
       jwt.sign({user:{id: user.id}},'listenerd_secret_key',
        {expiresIn: 7200}, (err, token) => {
         if(err) throw err;
-        res.json({token});
+        res.status(201).json({ token })
        })
     } else {
       return res.status(400).json({msg: 'Username already taken'});
@@ -363,7 +358,7 @@ app.post('/register', async (req,res) => {
 app.post('/login', async (req,res) => {
   const {username, password} = req.body;
   try {
-    const users = client.db('Listenerd').collection('users'); 
+    const users = await db.collection('users'); 
     const user = await users.findOne({ username });    
     if(user){
       const passwordOk = await bcrypt.compare(password, user.password);
@@ -408,13 +403,13 @@ function authUser(req, res, next) {
 
 app.get('/user-profile', authUser, async (req, res) => {
   const username = req.user.username;
-  const users = client.db('Listenerd').collection('users'); 
-  const users_params = client.db('Listenerd').collection('users-params'); 
+  const users = await db.collection('users'); 
+  const users_params = await db.collection('users-params'); 
   const user = await users.findOne({ username: username });
   const params = await users_params.findOne({username: username});
   const preview = [[],[], []];
   if(user.toListen != [] || user.liked != []){
-    const albums = client.db('Listenerd').collection('albums'); 
+    const albums = await db.collection('albums'); 
     if(user.toListen.length >= 3){
       for(let i=0;i<3;i++){
         let album = await albums.findOne({ idAlbum: user.toListen[i] });
@@ -428,7 +423,7 @@ app.get('/user-profile', authUser, async (req, res) => {
       }
     }
     if(user.artistFollowed != [] && user.artistFollowed.length >= 3){
-      const artists = client.db('Listenerd').collection('artists'); 
+      const artists = await db.collection('artists'); 
       for(let i=0;i<3;i++){
         let artist = await artists.findOne({ idArtist: user.artistFollowed[i] });
         preview[2].push(artist.picture);
@@ -440,11 +435,11 @@ app.get('/user-profile', authUser, async (req, res) => {
 
 app.get('/user-list', authUser, async (req, res) => {
   const username = req.user.username;
-  const users = client.db('Listenerd').collection('users'); 
+  const users = await db.collection('users'); 
   const user = await users.findOne({ username: username });
   const list = req.query.list;
-  const albums = client.db('Listenerd').collection('albums'); 
-  const artists = client.db('Listenerd').collection('artists'); 
+  const albums = await db.collection('albums'); 
+  const artists = await db.collection('artists'); 
   let ret = []
   let userParams = null;
   if(list == 0){
@@ -454,7 +449,7 @@ app.get('/user-list', authUser, async (req, res) => {
       ret.push([album.idAlbum, album.title, [album.artistId, artist.name], album.cover, album.releaseDate]);
     }
   } else if(list == 1) {
-    const users_params = client.db('Listenerd').collection('users-params'); 
+    const users_params = await db.collection('users-params'); 
     userParams = await users_params.findOne({username: username});
     user.liked.sort((a, b) => b.rate - a.rate);
     for(let i=0;i<user.liked.length;i++){
@@ -514,7 +509,7 @@ app.post('/user-save-profile-picture', authUser, async (req, res) => {
     if (!fileBase64 || !type) {
       return res.status(400).json({ message: 'No file sent or wrong format' });
     }
-    const users = client.db('Listenerd').collection('users'); 
+    const users = await db.collection('users'); 
 
     const buffer = Buffer.from(fileBase64, 'base64');
     const newImage = {
@@ -546,13 +541,13 @@ app.post('/add-album-to-list', authUser, async (req, res) => {
   const dataAlbum = req.body.albumDataToInsertInDB;
   const albumId = dataAlbum[0];
   try {
-    const users = client.db('Listenerd').collection('users'); 
-    const albums = client.db('Listenerd').collection('albums'); 
+    const users = await db.collection('users'); 
+    const albums = await db.collection('albums'); 
     let user = await users.findOne({username});
     if(user != null){
       const album = await albums.findOne({idAlbum: albumId});
       if(album == null){
-        const artists = client.db('Listenerd').collection('artists'); 
+        const artists = await db.collection('artists'); 
         const artistId = dataAlbum[2][0];
         const artist = await artists.findOne({idArtist: artistId});
         if(artist == null){
@@ -596,8 +591,8 @@ app.post('/follow-unfollow-artist', authUser, async (req, res) => {
   const dataArtist = req.body.artistToFollow;
   const artistId = dataArtist[0];
   try {
-    const users = client.db('Listenerd').collection('users'); 
-    const artists = client.db('Listenerd').collection('artists'); 
+    const users = await db.collection('users'); 
+    const artists = await db.collection('artists'); 
     let user = await users.findOne({username});
     if(user != null){
       let artist = await artists.findOne({idArtist: artistId});
@@ -636,7 +631,7 @@ app.post('/check-follow', authUser, async (req, res) => {
   const artistId = req.body.artistId[0];
   let ret = -1;
   try {
-    const users = client.db('Listenerd').collection('users'); 
+    const users = await db.collection('users'); 
     let user = await users.findOne({username});
     if(user != null){
       if(user.artistFollowed != null && Array.isArray(user.artistFollowed) && (user.artistFollowed.includes(artistId))){
@@ -665,10 +660,10 @@ app.post('/check-list', authUser, async (req, res) => {
   const albumId = req.body.albumId[0];
   let ret = -1;
   try {
-    const users = client.db('Listenerd').collection('users'); 
+    const users = await db.collection('users'); 
     let user = await users.findOne({username});
     if(user != null){
-      const users_params = client.db('Listenerd').collection('users-params'); 
+      const users_params = await db.collection('users-params'); 
       const userParams = await users_params.findOne({username: username});
 
       if(user.liked != null && Array.isArray(user.liked) && (user.liked.some(album => album.id === albumId))){
@@ -697,7 +692,7 @@ app.post('/change-rate', authUser, async (req, res) => {
   const albumId = req.body.dataToSend[0];
   const newRate = req.body.dataToSend[1];
   try {
-    const users = client.db('Listenerd').collection('users'); 
+    const users = await db.collection('users'); 
     let user = await users.findOne({username});
     if(user != null){
       if(user.liked != null && Array.isArray(user.liked) && (user.liked.some(album => album.id === albumId))){
@@ -717,7 +712,7 @@ app.post('/change-country', authUser, async (req, res) => {
   const username = req.user.username;
   const newCountry = req.body.dataToSend;
   try {
-    const users = client.db('Listenerd').collection('users'); 
+    const users = await db.collection('users'); 
     let user = await users.findOne({username});
     if(user != null){
       await users.updateOne({username: username}, {$set: {'country': newCountry}});
@@ -735,7 +730,7 @@ app.post('/change-scale', authUser, async (req, res) => {
   const username = req.user.username;
   const newScale = req.body.dataToSend;
   try {
-    const users_params = client.db('Listenerd').collection('users-params'); 
+    const users_params = await db.collection('users-params'); 
     let userParams = await users_params.findOne({username: username});
     if(userParams != null){
       await users_params.updateOne({username: username}, {$set: {'scale': newScale}});
@@ -753,7 +748,7 @@ app.post('/change-gap', authUser, async (req, res) => {
   const username = req.user.username;
   const newGap = req.body.dataToSend;
   try {
-    const users_params = client.db('Listenerd').collection('users-params'); 
+    const users_params = await db.collection('users-params'); 
     let userParams = await users_params.findOne({username: username});
     if(userParams != null){
       await users_params.updateOne({username: username}, {$set: {'gap': newGap}});
