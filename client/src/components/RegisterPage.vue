@@ -39,7 +39,7 @@ export default {
   },
   methods: {
     async register() {
-      await axios.post('http://localhost:3001/register', {
+      await axios.post('http://localhost:3001/user', {
         username: this.username,
         password: this.password,
       });

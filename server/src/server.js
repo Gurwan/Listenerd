@@ -9,10 +9,11 @@ const bcrypt = require('bcrypt');
 const app = express();
 const { MongoClient, ObjectId } = require('mongodb');
 const port = 3001;
-const User = require('../models/User')
-const UserParams = require('../models/UserParams')
 const Album = require('../models/Album')
 const Artist = require('../models/Artist');
+const UserController = require('../controllers/UserController');
+const AlbumController = require('../controllers/AlbumController');
+const ArtistController = require('../controllers/ArtistController');
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
@@ -20,18 +21,36 @@ app.use(express.json({ limit: '10mb' }));
 const uri = "mongodb://localhost:27017";
 const client = new MongoClient(uri);
 let db;
+let userController;
+let artistController;
+let albumController;
+
+/** Async function allowing connection with the database */
 async function run() {
     try {
       let connection = await client.connect();
       db = connection.db('Listenerd');
       await client.db("admin").command({ ping: 1 });
       console.log("Pinged your database. You successfully connected to MongoDB!");
+      createControllers();
     } catch (e) {
       console.log(e)
     }
   }
 run().catch(console.dir);
 
+/**
+ * Method used to create the three controllers
+ */
+function createControllers(){
+  userController = new UserController(db);
+  albumController = new AlbumController(db);
+  artistController = new ArtistController(db);
+}
+
+/**
+ * Get the Spotify access token store in the database
+ */
 async function getSpotifyAccessToken(){
   let ret = null;
   let i = 0;
@@ -98,169 +117,11 @@ async function getSpotifyAccessToken(){
   return ret;
 }
 
-function formatAlbum(response){
-  const albums = response.data.albums.items
-  let i = 0
-  let arrayAlbum = []
-  while(i < albums.length){
-    //id and name of artist
-    const artistData = [albums[i].artists[0].id,albums[i].artists[0].name]
-    //id, name, artist, cover and release date
-    arrayAlbum.push([albums[i].id, albums[i].name, artistData, albums[i].images[0].url,albums[i].release_date])
-    i = i+1
-  }
-  return arrayAlbum
-}
-
-app.get('/search', async (req, res) => {
-  let accessTokenSpotify = null;
-  while(accessTokenSpotify == null){
-    accessTokenSpotify = await getSpotifyAccessToken();
-  }
-  axios.get(`https://api.spotify.com/v1/search?q=${req.query.search}&type=album&limit=50`, {
-    headers: {
-      Authorization: `Bearer ${accessTokenSpotify}`,
-    },
-  })
-  .then((response) => {
-    const arrayAlbum = formatAlbum(response);
-    res.send(arrayAlbum)
-  })
-  .catch((error) => {
-    console.error('Spotify API error', error);
-  });
-});
-
-//albums shown on the home page
-app.get('/new-releases', authUser, async (req, res) => {
-  let country = 'IE'
-  if(req.user != undefined && req.user != null){
-    const username = req.user.username;
-    const users = await db.collection('users'); 
-    const user = await users.findOne({ username: username });
-    country = user.country;
-  }
-  const accessTokenSpotify = await getSpotifyAccessToken();
-  axios.get(`https://api.spotify.com/v1/browse/new-releases?country=${country}&limit=50&offset=0`, {
-    headers: {
-      Authorization: `Bearer ${accessTokenSpotify}`,
-    },
-  })
-  .then((response) => {
-    const arrayAlbum = formatAlbum(response)
-    res.send(arrayAlbum)
-  })
-  .catch((error) => {
-    console.error('Spotify API error', error);
-  });
-});
-
-
-app.get('/get-album', async (req, res) => {
-  const accessTokenSpotify = await getSpotifyAccessToken();
-  axios.get(`https://api.spotify.com/v1/albums/${req.query.albumId}`, {
-    headers: {
-      Authorization: `Bearer ${accessTokenSpotify}`,
-    },
-  })
-  .then((response) => {
-    const data = response.data
-    artistData = [data.artists[0].id,data.artists[0].name]
-    //id, title, id and name of artist, image cover, year, name of label, main genre, tracklist
-    albumData = [data.id,data.name,artistData,data.images[0].url,data.release_date,data.artist,data.label,data.genres[0], data.tracks.items];
-    res.send(albumData)
-  })
-  .catch((error) => {
-    console.error('Spotify API error', error);
-  });
-});
-
-app.get('/get-artist', async (req, res) => {
-  const accessTokenSpotify = await getSpotifyAccessToken();
-  let artistData = []
-  //get artist
-  axios.get(`https://api.spotify.com/v1/artists/${req.query.artistId}`, {
-    headers: {
-      Authorization: `Bearer ${accessTokenSpotify}`,
-    },
-  })
-  .then(async (response) => {
-    const data = response.data;
-    //id, name, profile picture, followers number, popularity and genres
-    let i = 0;
-    let genres = "";
-    while(i < data.genres.length){
-      if(i == data.genres.length - 1){
-        genres += data.genres[i]
-      } else {
-        genres += data.genres[i] + ", "
-      }
-      i = i + 1
-    }
-    let followers;
-    if (data.followers.total >= 1000000) {
-      followers = (data.followers.total/ 1000000).toFixed(1) + 'M';
-    } else if (data.followers.total >= 1000) {
-      followers = (data.followers.total/ 1000).toFixed(0) + 'K';
-    } else {
-      followers = data.followers.total.toString();
-    }
-    const artists = await db.collection('artists'); 
-    let followersOnListenerd = await artists.findOne({ idArtist: data.id });
-    if(followersOnListenerd != null || followersOnListenerd != undefined){
-      followersOnListenerd = followersOnListenerd.followersListenerd;
-    }
-    if(followersOnListenerd == null || followersOnListenerd == undefined){
-      followersOnListenerd = 0;
-    }
-    artistData.push([data.id,data.name,data.images[0].url,followers,data.popularity,genres,followersOnListenerd]);
-
-    //get all albums
-    axios.get(`https://api.spotify.com/v1/artists/${req.query.artistId}/albums`, {
-      headers: {
-       Authorization: `Bearer ${accessTokenSpotify}`,
-     },
-    })
-    .then((response) => {
-      let albumsData = []
-      const albums = response.data.items;
-      let i = 0
-      while(i < albums.length){
-        if(albums[i].album_type != "single"){
-          albumsData.push([albums[i].id,albums[i].name,albums[i].release_date,albums[i].images[0].url])
-        }
-        i = i+1
-      }
-      artistData.push(albumsData)
-
-      //get a top track
-      axios.get(`https://api.spotify.com/v1/artists/${req.query.artistId}/top-tracks?market=FR`, {
-        headers: {
-          Authorization: `Bearer ${accessTokenSpotify}`,
-        },
-      })
-      .then((response) => {
-        const topTracks = response.data.tracks;
-        const randomTrack = topTracks[Math.floor(Math.random() * topTracks.length)];
-        artistData.push(randomTrack.id)
-
-        res.send(artistData)
-      })
-      .catch((error) => {
-        console.error('Spotify API error', error);
-      });
-    })
-    .catch((error) => {
-      console.error('Spotify API error', error);
-    });
-  })
-  .catch((error) => {
-    console.error('Spotify API error', error);
-  });
-
-});
-
-//code provided by spotify api
+/**
+ * Method to initialize the connection with the Spotify API
+ * Not should be used doesn't work normally
+ * The code is provide by Spotify API documentation
+ */
 app.get('/user-auth-spotify-callback', async function(req, res) {
   var code = req.query.code || null;
   var state = req.query.state || null;
@@ -308,74 +169,228 @@ app.get('/user-auth-spotify-callback', async function(req, res) {
   }
 });
 
-app.get('/get-spotify-access-token', async function(req, res) {
-  const accessToken = this.getSpotifyAccessToken();
-  if(accessToken == null){
-    //code provided by spotify api
-    res.redirect('https://accounts.spotify.com/authorize?' +
-    querystring.stringify({
-      response_type: 'code',
-      client_id: `${config.spotify.clientId}`,
-      scope:  'user-read-private user-read-email',
-      redirect_uri: 'http://localhost:3001/user-auth-spotify-callback',
-      state: "stateNotNull"
-    })); 
-  } else {
-    res.send(accessToken);
+/**
+ * Method used to transform the album format of Spotify API to Listenerd format to print album data
+ * @param {*} response album data from Spotify API
+ * @returns album format adapted to Listenerd front-end
+ */
+function formatAlbum(response){
+  const albums = response.data.albums.items
+  let i = 0
+  let arrayAlbum = []
+  while(i < albums.length){
+    //id and name of artist
+    const artistData = [albums[i].artists[0].id,albums[i].artists[0].name]
+    //id, name, artist, cover and release date
+    arrayAlbum.push([albums[i].id, albums[i].name, artistData, albums[i].images[0].url,albums[i].release_date])
+    i = i+1
   }
+  return arrayAlbum
+}
+
+/**
+ * Method allowing the search feature
+ * Need to be improve with the filter feature
+ */
+app.get('/search', async (req, res) => {
+  let accessTokenSpotify = null;
+  while(accessTokenSpotify == null){
+    accessTokenSpotify = await getSpotifyAccessToken();
+  }
+  axios.get(`https://api.spotify.com/v1/search?q=${req.query.search}&type=album&limit=50`, {
+    headers: {
+      Authorization: `Bearer ${accessTokenSpotify}`,
+    },
+  })
+  .then((response) => {
+    const arrayAlbum = formatAlbum(response);
+    res.send(arrayAlbum)
+  })
+  .catch((error) => {
+    console.error('Spotify API error', error);
+  });
 });
 
-app.post('/register', async (req,res) => {
-  const {username, password} = req.body;
-
-  try {
-    const users = await db.collection('users'); 
-    const users_params = await db.collection('users-params'); 
-    let user = await users.findOne({username});
-    if(user == null){
-      const salt = await bcrypt.genSalt(10);
-      let cryptedPassword = await bcrypt.hash(password, salt);
-
-      user = new User(username,cryptedPassword)
-      await users.insertOne(user);
-      let userParams = new UserParams(username);
-      await users_params.insertOne(userParams)
-
-      jwt.sign({user:{id: user.id}},'listenerd_secret_key',
-       {expiresIn: 7200}, (err, token) => {
-        if(err) throw err;
-        res.status(201).json({ token })
-       })
-    } else {
-      return res.status(400).json({msg: 'Username already taken'});
+/**
+ * REST GET method called by the home page of the app
+ * Can be adapted to the user country and use getCountryOfUser of UserController
+ */
+app.get('/new-releases', authUser, async (req, res) => {
+  //country by default
+  let country = 'IE'
+  if(req.user != undefined && req.user != null){
+    const resController = await userController.getCountryOfUser(req.user.username);
+    if(resController[0]){
+      country = resController[1];
     }
-  } catch (err){
-    console.log(err)
-    res.status(500).send("Server error")
+  }
+  const accessTokenSpotify = await getSpotifyAccessToken();
+  axios.get(`https://api.spotify.com/v1/browse/new-releases?country=${country}&limit=50&offset=0`, {
+    headers: {
+      Authorization: `Bearer ${accessTokenSpotify}`,
+    },
+  })
+  .then((response) => {
+    const arrayAlbum = formatAlbum(response)
+    res.send(arrayAlbum)
+  })
+  .catch((error) => {
+    console.error('Spotify API error', error);
+  });
+});
+
+/**
+ * REST GET method allowing to get album informations from Spotify API
+ */
+app.get('/album', async (req, res) => {
+  const accessTokenSpotify = await getSpotifyAccessToken();
+  axios.get(`https://api.spotify.com/v1/albums/${req.query.albumId}`, {
+    headers: {
+      Authorization: `Bearer ${accessTokenSpotify}`,
+    },
+  })
+  .then((response) => {
+    const data = response.data
+    artistData = [data.artists[0].id,data.artists[0].name]
+    //id, title, id and name of artist, image cover, year, name of label, main genre, tracklist
+    albumData = [data.id,data.name,artistData,data.images[0].url,data.release_date,data.artist,data.label,data.genres[0], data.tracks.items];
+    res.send(albumData)
+  })
+  .catch((error) => {
+    console.error('Spotify API error', error);
+  });
+});
+
+/**
+ * REST GET method allowing to get all artist information from Spotify API and Listenerd database
+ */
+app.get('/artist', async (req, res) => {
+  const accessTokenSpotify = await getSpotifyAccessToken();
+  let artistData = []
+  //get artist from the Spotify API
+  axios.get(`https://api.spotify.com/v1/artists/${req.query.artistId}`, {
+    headers: {
+      Authorization: `Bearer ${accessTokenSpotify}`,
+    },
+  })
+  .then(async (response) => {
+    const data = response.data;
+    //id, name, profile picture, followers number, popularity and genres
+    let i = 0;
+    let genres = "";
+    while(i < data.genres.length){
+      if(i == data.genres.length - 1){
+        genres += data.genres[i]
+      } else {
+        genres += data.genres[i] + ", "
+      }
+      i = i + 1
+    }
+    
+    //spotify followers
+    let followers;
+    if (data.followers.total >= 1000000) {
+      followers = (data.followers.total/ 1000000).toFixed(1) + 'M';
+    } else if (data.followers.total >= 1000) {
+      followers = (data.followers.total/ 1000).toFixed(0) + 'K';
+    } else {
+      followers = data.followers.total.toString();
+    }
+
+    const resControllerArtist = await artistController.getFollowersOnListenerd(data.id);
+    if(resControllerArtist[0]){
+      followersOnListenerd = resControllerArtist[1];
+    } else {
+      followersOnListenerd = 0;
+    }
+    artistData.push([data.id,data.name,data.images[0].url,followers,data.popularity,genres,followersOnListenerd]);
+
+    //get all albums of the artist thanks to the Spotify API
+    axios.get(`https://api.spotify.com/v1/artists/${req.query.artistId}/albums`, {
+      headers: {
+       Authorization: `Bearer ${accessTokenSpotify}`,
+     },
+    })
+    .then((response) => {
+      let albumsData = []
+      const albums = response.data.items;
+      let i = 0
+      while(i < albums.length){
+        if(albums[i].album_type != "single"){
+          albumsData.push([albums[i].id,albums[i].name,albums[i].release_date,albums[i].images[0].url])
+        }
+        i = i+1
+      }
+      artistData.push(albumsData)
+
+      //get a random top track of this artist thanks to the Spotify API
+      axios.get(`https://api.spotify.com/v1/artists/${req.query.artistId}/top-tracks?market=FR`, {
+        headers: {
+          Authorization: `Bearer ${accessTokenSpotify}`,
+        },
+      })
+      .then((response) => {
+        const topTracks = response.data.tracks;
+        const randomTrack = topTracks[Math.floor(Math.random() * topTracks.length)];
+        artistData.push(randomTrack.id)
+        res.send(artistData)
+      })
+      .catch((error) => {
+        console.error('Spotify API error', error);
+      });
+    })
+    .catch((error) => {
+      console.error('Spotify API error', error);
+    });
+  })
+  .catch((error) => {
+    console.error('Spotify API error', error);
+  });
+});
+
+/**
+ * Register POST REST method
+ * Use register method from UserController
+ */
+app.post('/user', async (req,res) => {
+  const {username, password} = req.body;
+  const resController = await userController.register(username,password);
+  if(resController[0]){
+    jwt.sign({user:{id: resController[1]}},'listenerd_secret_key',
+    {expiresIn: 7200}, (err, token) => {
+     if(err) throw err;
+     res.status(201).json({ token })
+    })
+  } else {
+    if(resController[1] == 400){
+      res.status(400).json({msg: 'Username already taken'});
+    } else {
+      res.status(500).send("Server error")
+    }
   }
 });
 
+/**
+ * Login POST REST method
+ * Use login method from UserController
+ */
 app.post('/login', async (req,res) => {
   const {username, password} = req.body;
-  try {
-    const users = await db.collection('users'); 
-    const user = await users.findOne({ username });    
-    if(user){
-      const passwordOk = await bcrypt.compare(password, user.password);
-      if(passwordOk){
-        jwt.sign({username: user.username},'listenerd_secret_key',
-        {expiresIn: 7200}, (err, token) => {
-         if(err) throw err;
-         res.json({token});
-        })
-      } else {
-        return res.status(400).json({msg: 'Wrong password'});
-      }
+  const resController = await userController.login(username,password);
+  if(resController[0]){
+    jwt.sign({username: resController[1]},'listenerd_secret_key',
+    {expiresIn: 7200}, (err, token) => {
+     if(err) throw err;
+     res.json({token});
+    })
+  } else {
+    if(resController[1] == 400){
+      res.status(400).json({msg: 'Username does not exist'});
+    } else if (resController[1] == 401){
+      res.status(401).json({msg: 'Wrong password'});
     } else {
-      return res.status(400).json({msg: 'Username does not exist'});
+      res.status(500).send("Server error")
     }
-  } catch (err){
-    res.status(500).send("Server error")
   }
 });
 

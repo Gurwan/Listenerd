@@ -93,7 +93,7 @@ export default {
         });
     },
     getArtistData(artistId) {
-      axios.get(`http://localhost:3001/get-artist?artistId=${artistId}`)
+      axios.get(`http://localhost:3001/artist?artistId=${artistId}`)
         .then(response => {
           this.artistData = response.data[0];
           if(this.isAuth){

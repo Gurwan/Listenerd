@@ -158,7 +158,7 @@ export default {
       });
     },
     getAlbumData(albumId) {
-      axios.get(`http://localhost:3001/get-album?albumId=${albumId}`)
+      axios.get(`http://localhost:3001/album?albumId=${albumId}`)
         .then(response => {
           this.albumData = response.data;
           if(this.isAuth){
