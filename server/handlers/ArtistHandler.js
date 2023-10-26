@@ -1,5 +1,3 @@
-const Artist = require('../models/artist'); 
-
 class ArtistHandler {
   constructor(db){
     this.artists = db.collection('artists');
@@ -7,15 +5,11 @@ class ArtistHandler {
 
   /**
    * Create an artist : can be used to store artist data to after that add it to a followed artists list
-   * @param {*} id 
-   * @param {*} name 
-   * @param {*} picture 
-   * @param {*} followers 
+   * @param {*} artist
    */
-  async createArtist(id,name,picture,followers) {
+  async createArtist(artist) {
     try {
-      const newArtist = new Artist(id,name,picture,followers);
-      await this.artists.insertOne(newArtist);
+      await this.artists.insertOne(artist);
     } catch (error) {
       throw error;
     }
@@ -24,12 +18,12 @@ class ArtistHandler {
   /**
    * Get an artist in the database
    * Can be used to get the number of followers on Listenerd or to print artist information in followed artists list
-   * @param {*} idArtist 
+   * @param {*} id 
    * @returns 
    */
-  async getArtist(idArtist){
+  async getArtist(id){
     try {
-      const artist = await this.artists.findOne({ idArtist: data.id });
+      const artist = await this.artists.findOne({ idArtist: id });
       return artist;
     } catch (error) {
       throw error;
@@ -40,16 +34,11 @@ class ArtistHandler {
    * Update an artist in the database
    * This method is used to set/update the picture of an artist + to update the number of followers on Listenerd
    * @param {} id 
-   * @param {*} k 
-   * @param {*} value 
+   * @param {*} update
    */
   async updateArtist(id,k,value){
     try {
-      if(k == "picture"){
-        await this.artists.updateOne({idArtist:id}, {$set:{picture: value}})
-      } else {
-        await this.artists.updateOne({idArtist:id}, {$set:{followersListenerd: value}})
-      }
+      await this.artists.updateOne({idArtist:id}, update)
     } catch (error) {
       throw error;
     }
