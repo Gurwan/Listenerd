@@ -192,16 +192,16 @@ export default {
       //required data to show the album in lists : id of album, name, id of main artist, cover and release date
       //only the id will be used if the album is already in the db
       const albumDataToInsertInDB = [this.albumData[0],this.albumData[1],this.albumData[2],this.albumData[3],this.albumData[4]]
-      axios.post('http://localhost:3001/add-album-to-list', {albumDataToInsertInDB,list})
+      axios.post('http://localhost:3001/album', {albumDataToInsertInDB,list})
         .then(response => {
-          if(response.data.msg == -10){
+          if(response.data.message == -10){
             this.alreadyToListen = false;
-          } else if(response.data.msg == 10){
+          } else if(response.data.message == 10){
             this.alreadyToListen = true;
-          } else if(response.data.msg == -11){
+          } else if(response.data.message == -11){
             this.alreadyLiked = false;
             this.rate = 0;
-          } else if(response.data.msg == 11){
+          } else if(response.data.message == 11){
             this.alreadyLiked = true;
           } else {
             console.log(response.data)
@@ -209,7 +209,7 @@ export default {
         })
         .catch(error => {
           if(error != null){
-            this.$router.push('/logout') 
+            //this.$router.push('/logout') 
           }
         });
     },

@@ -76,7 +76,7 @@ export default {
       axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
       //number of followers = 0 if the artist isn't in the db
       const artistToFollow = [this.artistData[0],this.artistData[1],this.artistData[2]]
-      axios.post('http://localhost:3001/follow-unfollow-artist', {artistToFollow})
+      axios.post('http://localhost:3001/artist', {artistToFollow})
         .then(response => {
           this.followStatus = response.data.message;
           if(this.followStatus == 0){

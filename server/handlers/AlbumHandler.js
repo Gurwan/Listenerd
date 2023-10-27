@@ -14,8 +14,10 @@ class AlbumHandler {
   async createAlbum(album){
     try {
       await this.albums.insertOne(album);
+      return true;
     } catch (error) {
       throw error;
+      return false;
     }
   }
 

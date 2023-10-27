@@ -158,7 +158,7 @@ export default {
         })
         .catch(error => {
           if(error != null){
-            this.$router.push('/logout') 
+            //this.$router.push('/logout') 
           }        
         }
       );

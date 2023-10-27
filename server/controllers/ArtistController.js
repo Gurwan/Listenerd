@@ -1,4 +1,5 @@
 const ArtistHandler = require('../handlers/ArtistHandler'); 
+const Artist = require('../models/Artist'); 
 const axios = require('axios');
 
 class ArtistController {
@@ -118,8 +119,72 @@ class ArtistController {
             return [false,500]
         }
     }
+
+    /**
+     * Change the number of followers of an artist
+     * @param {*} id 
+     * @param {*} name 
+     * @param {*} photo 
+     * @param {*} followers 
+     * @param {*} toFollow 
+     * @returns 
+     */
+    async followingArtist(id,name,photo,followers,toFollow){
+        try {
+            let artist = await this.handler.getArtist(id);
+            if(artist){
+                if(artist.picture == null){
+                    const filter = {$set:{picture: photo}};
+                    await this.handler.updateArtist(id,filter);
+                }
+            } else {
+                const newArtist = new Artist(id,name,photo,followers)
+                const resInsert = await this.handler.createArtist(newArtist);
+                if(!resInsert){
+                    return [false,500];
+                }
+            }
+            if(!artist){
+                artist = await this.handler.getArtist(id);
+            }
+
+            let newNbOfFollowers = artist.followersListenerd;
+            if(toFollow){
+                newNbOfFollowers = newNbOfFollowers + 1;
+            } else {
+                newNbOfFollowers = newNbOfFollowers - 1;
+            }
+            const update = {$set:{followersListenerd: Number(newNbOfFollowers)}}
+            await this.handler.updateArtist(id,update);
+            return [true,200]
+        } catch (error){
+            return [false,500]
+        }
+    }
     
-    
+    /**
+     * Add artist to the database
+     * @param {*} dataArtist 
+     * @returns if success of the operation [true,id of artist] else [false, error code]
+     */
+    async addArtist(id,name,photo,followers){
+        try {
+            const artist = await this.handler.getArtist(id)
+            if(artist){
+                return [true,id]
+            } else {
+                const artistObject = new Artist(id,name)
+                const resInsert = await this.handler.createArtist(artistObject);
+                if(resInsert){
+                    return [true,id]
+                } else {
+                    return [false,500];
+                }
+            }
+        } catch (error){
+            return [false,500]
+        }
+    }
 }
 
 module.exports = ArtistController;

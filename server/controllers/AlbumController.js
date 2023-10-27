@@ -1,4 +1,5 @@
 const AlbumHandler = require('../handlers/AlbumHandler'); 
+const Album = require('../models/Album'); 
 
 class AlbumController {
     constructor(db){
@@ -71,7 +72,36 @@ class AlbumController {
             console.log(error);
             return [false,500];
         }
+    }
 
+    /**
+     * Add album to the database
+     * @param {*} albumData 
+     * @param {*} artistController 
+     * @returns if success of the operation [true,id of the album] else [false, error code]
+     */
+    async addAlbum(albumData,artistController){
+        try {
+            const albumAlreadyExists = await this.handler.getAlbum(albumData[0]);
+            if(albumAlreadyExists){
+                return [true,albumData[0]]
+            } else {
+                const resArtistController = await artistController.addArtist(albumData[2][0],albumData[2][1],null,null);
+                if(resArtistController[0]){
+                    const albumObject = new Album(albumData[0],albumData[1],albumData[2][0],albumData[4],albumData[3]);
+                    const resInsertion = await this.handler.createAlbum(albumObject)
+                    if(resInsertion){
+                        return [true,albumData[0]]
+                    } else {
+                        return [false,500]
+                    }
+                } else {
+                    return [false,500];
+                }
+            }
+        } catch (error){
+            return [false,500]
+        }
     }
 }
 

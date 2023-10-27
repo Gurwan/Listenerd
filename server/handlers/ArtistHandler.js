@@ -10,8 +10,10 @@ class ArtistHandler {
   async createArtist(artist) {
     try {
       await this.artists.insertOne(artist);
+      return true;
     } catch (error) {
       throw error;
+      return false;
     }
   }
 
@@ -36,7 +38,7 @@ class ArtistHandler {
    * @param {} id 
    * @param {*} update
    */
-  async updateArtist(id,k,value){
+  async updateArtist(id,update){
     try {
       await this.artists.updateOne({idArtist:id}, update)
     } catch (error) {

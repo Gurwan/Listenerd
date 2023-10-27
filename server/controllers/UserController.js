@@ -236,10 +236,6 @@ class UserController {
         }
     }
 
-    async updateRateOfAnAlbum(){
-
-    }
-
     /**
      * Update the country of a user
      * @param {*} username 
@@ -277,12 +273,8 @@ class UserController {
             const userParams = await this.userParamsHandler.getUserParams(username);
             if(userParams){
                 const filter = {username: username};
-                const resUpdate = await this.userParamsHandler.updateUserParams(filter,update);
-                if(resUpdate){
-                    return [true,200];
-                } else {
-                    return [false,500];
-                }
+                await this.userParamsHandler.updateUserParams(filter,update);
+                return [true,200];
             } else {
                 return [false,404];
             }
@@ -304,17 +296,122 @@ class UserController {
             if(user){
                 const filter = {username: username,'liked.id': albumId};
                 const update = {$set: {'liked.$.rate': rate}};
-                const resUpdate = await this.userHandler.updateUser(filter,update);
-                if(resUpdate){
-                    return [true,200]
-                } else {
-                    return [false,500]
-                }
+                await this.userHandler.updateUser(filter,update);
+                return [true,200]
             } else {
                 return [false,404];
             }
         } catch (error){
             return [false,500];
+        }
+    }
+
+    /**
+     * Add album to a list
+     * @param {*} username 
+     * @param {*} list 
+     * @param {*} dataAlbum 
+     * @param {*} albumController 
+     * @param {*} artistController 
+     * @returns if success of the operation [true,code indicating the operation] else [false, error code]
+     */
+    async addAlbumToList(username,list,dataAlbum,albumController,artistController){
+        try {
+            const user = await this.userHandler.getUser(username);
+            if(user){
+                const resAlbumController = await albumController.addAlbum(dataAlbum,artistController);
+                if(resAlbumController[0]){
+                    if(list == 0){
+                      if(user.toListen.includes(dataAlbum[0])){
+                          //delete the album of the list
+                          const filter = {username:username};
+                          const update = {$pull: {toListen: dataAlbum[0]}};
+                          const resUpdate = await this.userHandler.updateUser(filter,update);
+                          if(resUpdate){
+                              return [true,-10]
+                          } else {
+                              return [false,500]
+                          }
+                      } else {
+                          const filter = {username:username};
+                          const update = {$push: {toListen: dataAlbum[0]}};
+                          const resUpdate = await this.userHandler.updateUser(filter,update);
+                          if(resUpdate){
+                              return [true,10]
+                          } else {
+                              return [false,500]
+                          }
+                      }
+                    } else {
+                      if(user.liked.some(album => album.id === dataAlbum[0])){
+                        //delete the album of the liked list
+                        const filter = {username:username};
+                        const update = {$pull: {liked: {id: dataAlbum[0]}}};
+                        const resUpdate = await this.userHandler.updateUser(filter,update);
+                        if(resUpdate){
+                            return [true,-11]
+                        } else {
+                            return [false,500]
+                        }
+                      } else {
+                        let albumLiked = {id: dataAlbum[0], rate: -1}
+                        const filter = {username:username};
+                        const update = {$push: {liked: albumLiked}};
+                        const resUpdate = await this.userHandler.updateUser(filter,update);
+                        if(resUpdate){
+                            return [true,11]
+                        } else {
+                            return [false,500]
+                        }
+                      }
+                    } 
+                } else {
+                    return [false,500]
+                }
+            } else {
+                return [false,404]
+            }
+        } catch (error){
+            return [false,500]
+        }
+    }
+
+    /**
+     * Follow or unfollow an artist
+     * @param {*} username 
+     * @param {*} dataArtist 
+     * @param {*} artistController 
+     * @returns if success of the operation [true,code after the follow/unfollow] else [false, error code]
+     */
+    async followArtist(username,dataArtist,artistController){
+        try  {
+            const user = await this.userHandler.getUser(username);
+            if(user){
+                const filter = {username: username}
+                if(user.artistFollowed != null && user.artistFollowed != [] && user.artistFollowed.includes(dataArtist[0])){
+                    const resArtistController = await artistController.followingArtist(dataArtist[0],dataArtist[1],dataArtist[2],1,false)
+                    if(resArtistController[0]){
+                        const update = {$pull: {artistFollowed: dataArtist[0]}}
+                        await this.userHandler.updateUser(filter,update)
+                        return [true,0];
+                    } else {
+                        return [false,500]
+                    }
+                } else {
+                    const resArtistController = await artistController.followingArtist(dataArtist[0],dataArtist[1],dataArtist[2],1,true)
+                    if(resArtistController[0]){
+                        const update = {$push: {artistFollowed: dataArtist[0]}}
+                        await this.userHandler.updateUser(filter,update)
+                        return [true,1];
+                    } else {
+                        return [false,500]
+                    }
+                }
+            } else {
+                return [false,404]
+            }
+        } catch (error){
+            return [false,500]
         }
     }
 }

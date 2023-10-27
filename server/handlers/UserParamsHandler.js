@@ -37,9 +37,9 @@ class UserParamsHandler {
    * @param {String} username of the User associated 
    * @param {*} update : {$set { key: value}}
    */
-  async updateUserParams(username, update){
+  async updateUserParams(filter, update){
     try {
-      const res = await this.users_params.updateOne({username: username}, update)
+      const res = await this.users_params.updateOne(filter, update)
       if(res.modifiedCount == 1){
         return true;
       } else {

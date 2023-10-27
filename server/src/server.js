@@ -539,94 +539,29 @@ app.put('/rate', authUser, async (req, res) => {
 /**
  * POST REST method allowing to add an album to a list
  */
-app.post('/add-album-to-list', authUser, async (req, res) => {
+app.post('/album', authUser, async (req, res) => {
   const username = req.user.username;
   const list = req.body.list;
   const dataAlbum = req.body.albumDataToInsertInDB;
-  const albumId = dataAlbum[0];
-  try {
-    const users = await db.collection('users'); 
-    const albums = await db.collection('albums'); 
-    let user = await users.findOne({username});
-    if(user != null){
-      const album = await albums.findOne({idAlbum: albumId});
-      if(album == null){
-        const artists = await db.collection('artists'); 
-        const artistId = dataAlbum[2][0];
-        const artist = await artists.findOne({idArtist: artistId});
-        if(artist == null){
-          const artistObject = new Artist(artistId,dataAlbum[2][1])
-          await artists.insertOne(artistObject);
-        }
-        const albumObject = new Album(albumId,dataAlbum[1],artistId,dataAlbum[4],dataAlbum[3]);
-        await albums.insertOne(albumObject);
-      }
-      if(list == 0){
-        if(user.toListen.includes(albumId)){
-          //delete the album of the list
-          await users.updateOne({username:username},{$pull: {toListen: albumId}});
-          return res.status(200).json({ msg: -10 });
-        } else {
-          await users.updateOne({username:username},{$push: {toListen: albumId}});
-          return res.status(200).json({ msg: 10 });
-        }
-      } else {
-        if(user.liked.some(album => album.id === albumId)){
-          //delete the album of the liked list
-          await users.updateOne({username:username},{$pull: {liked: {id: albumId}}});
-          return res.status(200).json({ msg: -11 });
-        } else {
-          let albumLiked = {id: albumId, rate: -1}
-          await users.updateOne({username:username},{$push: {liked: albumLiked}});
-          return res.status(200).json({ msg: 11 });
-        }
-      } 
-    } else {
-      return res.status(400).json({ message: 'User must be logged' });
-    }
-  } catch(error){
-    console.error(error.message)
-    return res.status(500).json({ msg: 'Server error' });
+  const resUserController = await userController.addAlbumToList(username,list,dataAlbum,albumController,artistController);
+  if(resUserController[0]){
+    res.status(200).json({ message: resUserController[1]})
+  } else {
+    res.status(resUserController[1]).json({msg: 'Server error'})
   }
 });
 
-app.post('/follow-unfollow-artist', authUser, async (req, res) => {
+/**
+ * POST REST method allowing to a user to follow/unfollow an artist
+ */
+app.post('/artist', authUser, async (req, res) => {
   const username = req.user.username;
   const dataArtist = req.body.artistToFollow;
-  const artistId = dataArtist[0];
-  try {
-    const users = await db.collection('users'); 
-    const artists = await db.collection('artists'); 
-    let user = await users.findOne({username});
-    if(user != null){
-      let artist = await artists.findOne({idArtist: artistId});
-      if(artist == null){
-        const artistObject = new Artist(artistId,dataArtist[1],dataArtist[2],1)
-        await artists.insertOne(artistObject);
-      } 
-      artist = await artists.findOne({idArtist: artistId});
-      if(artist.picture == null){
-        await artists.updateOne({idArtist:artistId}, {$set:{picture: dataArtist[2]}})
-      }
-      let newNbOfFollowers = 0;
-      let flag = 0;
-      if(user.artistFollowed != null && user.artistFollowed != [] && user.artistFollowed.includes(artistId)){
-        await users.updateOne({username:username},{$pull: {artistFollowed: artistId}});
-        newNbOfFollowers = artist.followersListenerd - 1;
-        flag = 0;
-      } else {
-        await users.updateOne({username:username}, {$push:{artistFollowed: artistId}})
-        newNbOfFollowers = artist.followersListenerd + 1;
-        flag = 1;
-      }
-      await artists.updateOne({idArtist:artistId}, {$set:{followersListenerd: Number(newNbOfFollowers)}})
-      return res.status(200).json({ message: flag})
-    } else {
-      return res.status(400).json({ message: 'User must be logged' });
-    }
-  } catch(error){
-    console.error(error.message)
-    return res.status(500).json({ msg: 'Server error' });
+  const resUserController = await userController.followArtist(username,dataArtist,artistController);
+  if(resUserController[0]){
+    res.status(200).json({ message: resUserController[1]})
+  } else {
+    res.status(resUserController[1]).json({ msg: 'Server error' })
   }
 });
 
