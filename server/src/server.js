@@ -5,7 +5,6 @@ const config = require('../../config/config')
 const querystring = require('querystring');
 const cors = require('cors'); 
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
 const app = express();
 const { MongoClient, ObjectId } = require('mongodb');
 const port = 3001;
@@ -394,10 +393,21 @@ app.post('/login', async (req,res) => {
   }
 });
 
+/**
+ * Logout POST REST method
+ * Used just to confirm the logout of the user
+ */
 app.post('/logout', async (req, res) => {
   res.json({ message: 'Success of logout' });
 });
 
+/**
+ * Critical function allowing to identify the user logged
+ * This method is used as a middleware for several REST methods
+ * @param {*} req 
+ * @param {*} res 
+ * @param {*} next 
+ */
 function authUser(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -416,139 +426,118 @@ function authUser(req, res, next) {
   });
 }
 
-app.get('/user-profile', authUser, async (req, res) => {
+/**
+ * GET REST method allowing to get user information to display the user profile page
+ */
+app.get('/user', authUser, async (req, res) => {
   const username = req.user.username;
-  const users = await db.collection('users'); 
-  const users_params = await db.collection('users-params'); 
-  const user = await users.findOne({ username: username });
-  const params = await users_params.findOne({username: username});
-  const preview = [[],[], []];
-  if(user.toListen != [] || user.liked != []){
-    const albums = await db.collection('albums'); 
-    if(user.toListen.length >= 3){
-      for(let i=0;i<3;i++){
-        let album = await albums.findOne({ idAlbum: user.toListen[i] });
-        preview[0].push(album.cover);
-      }
-    }
-    if(user.liked.length >= 3){
-      for(let i=0;i<3;i++){
-        let album = await albums.findOne({ idAlbum: user.liked[i].id });
-        preview[1].push(album.cover);
-      }
-    }
-    if(user.artistFollowed != [] && user.artistFollowed.length >= 3){
-      const artists = await db.collection('artists'); 
-      for(let i=0;i<3;i++){
-        let artist = await artists.findOne({ idArtist: user.artistFollowed[i] });
-        preview[2].push(artist.picture);
-      }
-    }
-  }
-  res.send({user,preview,params})
-});
-
-app.get('/user-list', authUser, async (req, res) => {
-  const username = req.user.username;
-  const users = await db.collection('users'); 
-  const user = await users.findOne({ username: username });
-  const list = req.query.list;
-  const albums = await db.collection('albums'); 
-  const artists = await db.collection('artists'); 
-  let ret = []
-  let userParams = null;
-  if(list == 0){
-    for(let i=0;i<user.toListen.length;i++){
-      let album = await albums.findOne({ idAlbum: user.toListen[i] });
-      let artist = await artists.findOne({ idArtist: album.artistId });
-      ret.push([album.idAlbum, album.title, [album.artistId, artist.name], album.cover, album.releaseDate]);
-    }
-  } else if(list == 1) {
-    const users_params = await db.collection('users-params'); 
-    userParams = await users_params.findOne({username: username});
-    user.liked.sort((a, b) => b.rate - a.rate);
-    for(let i=0;i<user.liked.length;i++){
-      let album = await albums.findOne({ idAlbum: user.liked[i].id });
-      let artist = await artists.findOne({ idArtist: album.artistId });
-      ret.push([album.idAlbum, album.title, [album.artistId, artist.name], album.cover, album.releaseDate, user.liked[i].rate]);
-    }
-  } else {
-    //artist followed
-    let accessTokenSpotify = await getSpotifyAccessToken();
-    let albumArtistData = []
-    for(let i=0;i<user.artistFollowed.length;i++){
-      let artist = await artists.findOne({ idArtist: user.artistFollowed[i] });
-      let artistId = artist.idArtist;
-      let sizeAlbumsList = albumArtistData.length;
-      await axios.get(`https://api.spotify.com/v1/artists/${artistId}/albums`, {
-          headers: {
-          Authorization: `Bearer ${accessTokenSpotify}`,
-        },
-      }).then((response) => {
-          const albums = response.data.items;
-          let j = 0;
-          while(j < albums.length){
-            let releaseDateFormat = new Date(albums[j].release_date);
-            let todayDate = new Date();
-            //1000 ms in a s, 60s in a m, 60m in an hour and 24 hour in a day 
-            var differentInDays = Math.floor((todayDate - releaseDateFormat) / (1000 * 60 * 60 * 24));;
-            if(differentInDays <= 365){
-              albumArtistData.push([albums[j].id,albums[j].name,albums[j].album_type,albums[j].release_date,albums[j].images[0].url,[artist.idArtist, artist.name, artist.picture]])
-            }
-            j = j+1;
-          }
-      });
-      if(sizeAlbumsList == albumArtistData.length){
-        albumArtistData.push([null,null,null,null,null,[artist.idArtist, artist.name, artist.picture]])
-      }
-    }
-    albumArtistData.sort((el1, el2) => {
-      const el1d = new Date(el1[3]);
-      const el2d = new Date(el2[3]);
-      return el2d - el1d;
-    });
-    ret.push(albumArtistData);
-  }
-  if(userParams == null){
-    res.send(ret)
-  } else {
-    res.send({ret,userParams})
-  }
-});
-
-app.post('/user-save-profile-picture', authUser, async (req, res) => {
-  const username = req.user.username;
-  try {
-    const fileBase64 = req.body.fileBase64;
-    const type = req.body.type;
-    if (!fileBase64 || !type) {
-      return res.status(400).json({ message: 'No file sent or wrong format' });
-    }
-    const users = await db.collection('users'); 
-
-    const buffer = Buffer.from(fileBase64, 'base64');
-    const newImage = {
-      data: buffer,
-      contentType: type,
-    };
-
-    const filter = { username: username };
-    const update = { $set: { profilePicture: newImage } };
-  
-    const result = await users.updateOne(filter, update);
-  
-    if (result.modifiedCount === 1) {
-      return res.status(200).json({ msg: 'Profile picture updated' });
+  const resControllerUser = await userController.getUserData(username,albumController,artistController);
+  const resControllerParams = await userController.getUserParams(username);
+  if(resControllerUser[0]){
+    const user = resControllerUser[1];
+    const preview = resControllerUser[2];
+    if(resControllerParams[0]){
+      const params = resControllerParams[1];
+      res.status(200).send({user,preview,params});
     } else {
-      return res.status(500).json({ msg: 'Server error on insertion' });
+      res.status(200).send({user,preview});
     }
-  } catch (error) {
-    return res.status(500).json({ msg: 'Server error' });
+  } else {
+    res.status(resControllerUser[1]).send("Server error")
   }
 });
 
 /**
- * In fact it is add or remove album to list (to listen or liked list)
+ * Get content of a list among liked, to listen and followed artists lists
+ */
+app.get('/list', authUser, async (req, res) => {
+  const username = req.user.username;
+  const list = req.query.list;
+  const accessTokenSpotify = await getSpotifyAccessToken();
+  const resUserController = await userController.getUserList(username,list,artistController,albumController,accessTokenSpotify);
+  if(resUserController[0]){
+    res.status(200).send(resUserController[1]);
+  } else {
+    res.status(resUserController[1]).send("Server error")
+  }
+});
+
+/**
+ * PUT REST method allowing to change the profile picture of the user
+ */
+app.put('/user-picture', authUser, async (req, res) => {
+  const username = req.user.username;
+  const fileBase64 = req.body.fileBase64;
+  const type = req.body.type;
+  const resUserController = await userController.updatePicture(username,fileBase64,type);
+  if(resUserController[0]){
+    res.status(200).json({ msg: 'Profile picture updated' });
+  } else {
+    res.status(resUserController[1]).json({ msg: 'Server error' })
+  }
+});
+
+/**
+ * PUT REST method to change the country of the user
+ */
+app.put('/country', authUser, async (req, res) => {
+  const username = req.user.username;
+  const country = req.body.dataToSend;
+  const resUserController = await userController.updateCountry(username,country);
+  if(resUserController[0]){
+    res.status(200).json({ msg: 'Country updated' });
+  } else {
+    res.status(resUserController[1]).json({ msg: 'Server error' });
+  }
+});
+
+/**
+ * PUT REST method to change the scale of rating of albums for a user
+ */
+app.put('/scale', authUser, async (req, res) => {
+  const username = req.user.username;
+  const scale = req.body.dataToSend;
+  const update = {$set: {'scale': scale}};
+  const resUserController = await userController.updateParams(username,update);
+  if(resUserController[0]){
+    res.status(200).json({ message: 1})
+  } else {
+    res.status(resUserController[1]).json({ msg: 'Server error' });
+  }
+});
+
+/**
+ * PUT REST method to change ranges and colors for rating albums
+ */
+app.put('/gap', authUser, async (req, res) => {
+  const username = req.user.username;
+  const gap = req.body.dataToSend;
+  const update = {$set: {'gap': gap}};
+  const resUserController = await userController.updateParams(username,update);
+  if(resUserController[0]){
+    res.status(200).json({ message: 1})
+  } else {
+    res.status(resUserController[1]).json({ msg: 'Server error' });
+  }
+});
+
+/**
+ * PUT REST method change the rate of an album
+ */
+app.put('/rate', authUser, async (req, res) => {
+  const username = req.user.username;
+  const albumId = req.body.dataToSend[0];
+  const rate = req.body.dataToSend[1];
+  const resUserController = await userController.updateRate(username,albumId,rate);
+  if(resUserController[0]){
+    res.status(200).json({ message: 1})
+  } else {
+    res.status(resUserController[1]).json({ msg: 'Server error' });
+  }
+});
+
+/**
+ * POST REST method allowing to add an album to a list
  */
 app.post('/add-album-to-list', authUser, async (req, res) => {
   const username = req.user.username;
@@ -702,80 +691,7 @@ app.post('/check-list', authUser, async (req, res) => {
   }
 });
 
-app.post('/change-rate', authUser, async (req, res) => {
-  const username = req.user.username;
-  const albumId = req.body.dataToSend[0];
-  const newRate = req.body.dataToSend[1];
-  try {
-    const users = await db.collection('users'); 
-    let user = await users.findOne({username});
-    if(user != null){
-      if(user.liked != null && Array.isArray(user.liked) && (user.liked.some(album => album.id === albumId))){
-        await users.updateOne({username: username,'liked.id': albumId}, {$set: {'liked.$.rate': newRate}});
-      } 
-      return res.status(200).json({ message: 1})
-    } else {
-      return res.status(400).json({ message: 'User must be logged' });
-    }
-  } catch(error){
-    console.error(error.message)
-    return res.status(500).json({ msg: 'Server error' });
-  }
-});
 
-app.post('/change-country', authUser, async (req, res) => {
-  const username = req.user.username;
-  const newCountry = req.body.dataToSend;
-  try {
-    const users = await db.collection('users'); 
-    let user = await users.findOne({username});
-    if(user != null){
-      await users.updateOne({username: username}, {$set: {'country': newCountry}});
-      return res.status(200).json({ message: 1})
-    } else {
-      return res.status(400).json({ message: 'User must be logged' });
-    }
-  } catch(error){
-    console.error(error.message)
-    return res.status(500).json({ msg: 'Server error' });
-  }
-});
-
-app.post('/change-scale', authUser, async (req, res) => {
-  const username = req.user.username;
-  const newScale = req.body.dataToSend;
-  try {
-    const users_params = await db.collection('users-params'); 
-    let userParams = await users_params.findOne({username: username});
-    if(userParams != null){
-      await users_params.updateOne({username: username}, {$set: {'scale': newScale}});
-      return res.status(200).json({ message: 1})
-    } else {
-      return res.status(400).json({ message: 'User must be logged' });
-    }
-  } catch(error){
-    console.error(error.message)
-    return res.status(500).json({ msg: 'Server error' });
-  }
-});
-
-app.post('/change-gap', authUser, async (req, res) => {
-  const username = req.user.username;
-  const newGap = req.body.dataToSend;
-  try {
-    const users_params = await db.collection('users-params'); 
-    let userParams = await users_params.findOne({username: username});
-    if(userParams != null){
-      await users_params.updateOne({username: username}, {$set: {'gap': newGap}});
-      return res.status(200).json({ message: 1})
-    } else {
-      return res.status(400).json({ message: 'User must be logged' });
-    }
-  } catch(error){
-    console.error(error.message)
-    return res.status(500).json({ msg: 'Server error' });
-  }
-});
 
 //code 
 app.listen(port, () => {

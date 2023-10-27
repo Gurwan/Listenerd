@@ -105,12 +105,11 @@ export default {
     const userId = localStorage.getItem('jwt_token');
     axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
 
-    axios.get('http://localhost:3001/user-profile')
+    axios.get('http://localhost:3001/user')
       .then(async response => {
         const user = response.data.user;
         const previewCovers = response.data.preview;
         this.params = response.data.params;
-        console.log(response.data.params.scale)
         this.username = user.username;
         this.country = user.country;
         if(user.profilePicture != null){
@@ -153,7 +152,7 @@ export default {
       const userId = localStorage.getItem('jwt_token');
       axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
       const dataToSend = this.params.gap;
-      axios.post('http://localhost:3001/change-gap', {dataToSend})
+      axios.put('http://localhost:3001/gap', {dataToSend})
         .then(response => {
           console.log(response);
         })
@@ -179,7 +178,7 @@ export default {
       const userId = localStorage.getItem('jwt_token');
       axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
       const dataToSend = this.country;
-      axios.post('http://localhost:3001/change-country', {dataToSend})
+      axios.put('http://localhost:3001/country', {dataToSend})
         .then(response => {
           console.log(response);
         })
@@ -195,7 +194,7 @@ export default {
       axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
       console.log(this.params.scale)
       const dataToSend = this.params.scale;
-      axios.post('http://localhost:3001/change-scale', {dataToSend})
+      axios.put('http://localhost:3001/scale', {dataToSend})
         .then(response => {
           console.log(response);
         })
@@ -217,7 +216,7 @@ export default {
         const reader = new FileReader();
         reader.onload = function () {
           const fileBase64 = reader.result.split(',')[1];
-          axios.post('http://localhost:3001/user-save-profile-picture', {fileBase64,type})
+          axios.put('http://localhost:3001/user-picture', {fileBase64,type})
           .then(response => {
             if(response.status == 200){
               console.log("profile picture edited")
@@ -225,7 +224,7 @@ export default {
           })
           .catch(error => {
             if(error != null){
-              this.$router.push('/logout') 
+              console.log(error)
             }
           });
         };

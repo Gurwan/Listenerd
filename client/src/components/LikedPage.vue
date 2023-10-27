@@ -30,10 +30,10 @@ created(){
   const userId = localStorage.getItem('jwt_token');
   axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
 
-  axios.get('http://localhost:3001/user-list?list=1')
+  axios.get('http://localhost:3001/list?list=1')
     .then(response => {
       this.params = response.data.userParams;
-      const allData = response.data.ret;
+      const allData = response.data.resultLiked;
       if (Array.isArray(allData) && allData.length > 0) {
         this.albumsValues = allData;
       } else {
@@ -43,6 +43,7 @@ created(){
     .catch(error => {
         if(error != null){
           this.$router.push('/logout') 
+          console.log(error)
         }
     });
 },

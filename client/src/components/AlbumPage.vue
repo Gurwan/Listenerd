@@ -147,12 +147,13 @@ export default {
       const userId = localStorage.getItem('jwt_token');
       axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
       const dataToSend = [this.albumData[0], this.rate]
-      axios.post('http://localhost:3001/change-rate', {dataToSend})
+      axios.put('http://localhost:3001/rate', {dataToSend})
         .then(response => {
           console.log(response);
         })
         .catch(error => {
         if(error != null){
+          console.log(error)
           this.$router.push('/logout') 
         }
       });

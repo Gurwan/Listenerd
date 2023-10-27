@@ -39,7 +39,12 @@ class UserParamsHandler {
    */
   async updateUserParams(username, update){
     try {
-      await this.users_params.updateOne({username: username}, update)
+      const res = await this.users_params.updateOne({username: username}, update)
+      if(res.modifiedCount == 1){
+        return true;
+      } else {
+        return false;
+      }
     } catch (error) {
       throw error;
     }

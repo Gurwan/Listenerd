@@ -27,7 +27,7 @@ created(){
   const userId = localStorage.getItem('jwt_token');
   axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
 
-  axios.get('http://localhost:3001/user-list?list=0')
+  axios.get('http://localhost:3001/list?list=0')
     .then(response => {
       const allData = response.data;
       if (Array.isArray(allData) && allData.length > 0) {

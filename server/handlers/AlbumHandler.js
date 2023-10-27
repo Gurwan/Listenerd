@@ -27,7 +27,7 @@ class AlbumHandler {
    * @returns 
    */
   async getAlbum(id){
-    const album = await this.artists.findOne({ idAlbum: id });
+    const album = await this.albums.findOne({ idAlbum: id });
     return album;
   }
 }

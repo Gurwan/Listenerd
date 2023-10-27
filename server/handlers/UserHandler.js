@@ -38,13 +38,19 @@ class UserHandler {
    * @param {String} username
    * @param {*} update : {$set { key: value}}
    */
-  async updateUser(username, update){
+  async updateUser(filter, update){
     try {
-      await this.users.updateOne({username: username}, update)
+      const res = await this.users.updateOne(filter, update)
+      if(res.modifiedCount == 1){
+        return true;
+      } else {
+        return false;
+      }
     } catch (error) {
       throw error;
     }
   }
+
 }
 
 module.exports = UserHandler;
