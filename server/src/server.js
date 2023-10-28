@@ -8,8 +8,6 @@ const jwt = require('jsonwebtoken');
 const app = express();
 const { MongoClient, ObjectId } = require('mongodb');
 const port = 3001;
-const Album = require('../models/Album')
-const Artist = require('../models/Artist');
 const UserController = require('../controllers/UserController');
 const AlbumController = require('../controllers/AlbumController');
 const ArtistController = require('../controllers/ArtistController');
@@ -565,70 +563,36 @@ app.post('/artist', authUser, async (req, res) => {
   }
 });
 
+/**
+ * POST REST method checking if a user follow an artist or not
+ */
 app.post('/check-follow', authUser, async (req, res) => {
   const username = req.user.username;
   const artistId = req.body.artistId[0];
-  let ret = -1;
-  try {
-    const users = await db.collection('users'); 
-    let user = await users.findOne({username});
-    if(user != null){
-      if(user.artistFollowed != null && Array.isArray(user.artistFollowed) && (user.artistFollowed.includes(artistId))){
-        ret = 1;
-      } else {
-        ret = 0;
-      }
-      return res.status(200).json({ message: ret})
-    } else {
-      return res.status(400).json({ message: 'User must be logged' });
-    }
-  } catch(error){
-    console.error(error.message)
-    return res.status(500).json({ msg: 'Server error' });
+  const resUserController = await userController.isFollowed(username,artistId);
+  if(resUserController[0]){
+    res.status(200).json({ message: resUserController[1]})
+  } else {
+    res.status(resUserController[1]).json({msg: 'Server error'})
   }
 });
 
 /**
- * If in wish list : 0
- * If in liked list : 1
- * If in both : 2
- * If in any : -1
+ * POST REST method checking if an album is in list
  */
 app.post('/check-list', authUser, async (req, res) => {
   const username = req.user.username;
   const albumId = req.body.albumId[0];
-  let ret = -1;
-  try {
-    const users = await db.collection('users'); 
-    let user = await users.findOne({username});
-    if(user != null){
-      const users_params = await db.collection('users-params'); 
-      const userParams = await users_params.findOne({username: username});
-
-      if(user.liked != null && Array.isArray(user.liked) && (user.liked.some(album => album.id === albumId))){
-        ret = {res: 1, rate: user.liked.find(album => album.id === albumId).rate};
-      } 
-
-      if(user.toListen != null && Array.isArray(user.toListen) && (user.toListen.includes(albumId))){
-        if(ret != 1){
-          ret = {res: 2, rate: user.liked.find(album => album.id === albumId).rate};
-        } else {
-          ret = 0;
-        }
-      } 
-      return res.status(200).json({ message: ret, params: userParams})
-    } else {
-      return res.status(400).json({ message: 'User must be logged' });
-    }
-  } catch(error){
-    console.error(error.message)
-    return res.status(500).json({ msg: 'Server error' });
+  const resUserController = await userController.isInList(username,albumId);
+  if(resUserController[0]){
+    //ret et userParams
+    res.status(200).json({ message: resUserController[1][0], params: resUserController[1][1]})
+  } else {
+    res.status(500).json({ msg: 'Server error' });
   }
 });
 
-
-
-//code 
+/** This method starts the app */
 app.listen(port, () => {
   console.log(`Server side is running on localhost:${port}`);
 });

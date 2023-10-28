@@ -414,6 +414,65 @@ class UserController {
             return [false,500]
         }
     }
+
+    /**
+     * Check if a user follow an artist
+     * @param {*} username 
+     * @param {*} idArtist 
+     * @returns if success of the operation [true,1 if the artist is followed else 0] else [false, error code]
+     */
+    async isFollowed(username,idArtist){
+        try {
+            const user = await this.userHandler.getUser(username);
+            if(user){
+                if(user.artistFollowed != null && Array.isArray(user.artistFollowed) && (user.artistFollowed.includes(idArtist))){
+                    return [true,1]
+                } else {
+                    return [true,0]
+                }
+            } else {
+                return [false,400]
+            }
+        } catch (error){
+            return [false,500]
+        }
+    }
+
+    /**
+     * Check if an album is in a list, in none or in both
+     * The return code is 0 if in wish list, 1 + rate if in liked list, 2 + rate if in both, -1 if in none
+     * @param {*} username 
+     * @param {*} albumId 
+     * @returns if success of the operation [true,return code] else [false, error code]
+     */
+    async isInList(username,albumId){
+        try {
+            const user = await this.userHandler.getUser(username);
+            if(user){
+                const userParams = await this.userParamsHandler.getUserParams(username);
+                if(userParams){
+                    let ret = -1;
+                    if(user.liked != null && Array.isArray(user.liked) && (user.liked.some(album => album.id === albumId))){
+                        ret = {res: 1, rate: user.liked.find(album => album.id === albumId).rate};
+                    } 
+                    if(user.toListen != null && Array.isArray(user.toListen) && (user.toListen.includes(albumId))){
+                        if(ret != -1){
+                          ret = {res: 2, rate: user.liked.find(album => album.id === albumId).rate};
+                        } else {
+                          ret = 0;
+                        }
+                    } 
+                    return [true,[ret,userParams]];
+                } else {
+                    return [false,404]
+                }
+            } else {
+                return [false,400]
+            }
+        } catch (error){
+            return [false,500]
+        }
+    }
 }
 
 module.exports = UserController;
