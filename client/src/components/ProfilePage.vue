@@ -9,8 +9,8 @@
             <h1>{{ username }}</h1>
         </div>
         <div>
-          <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 border border-blue-700 rounded" @click="chooseNewPic">Load a new picture</button>
-          <button id="saveNewPicId" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 border border-blue-700 rounded" style="display: none;" @click="savePic">Save the new profile picture</button>
+          <button class="big-button bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 border border-blue-700 rounded" @click="chooseNewPic">Load a new picture</button>
+          <button id="saveNewPicId" class="big-button bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 border border-blue-700 rounded" style="display: none;" @click="savePic">Save the new profile picture</button>
         </div>
         <div>
           <div v-if="successSave" class="success">{{ successSave }}</div>
@@ -76,7 +76,7 @@
               </div>
           </div>
 
-          <button @click="saveRange" class="bg-blue-500 text-white px-4 py-2 rounded">Save the range</button>
+          <button @click="saveRange" class="big-button bg-blue-500 text-white px-4 py-2 rounded">Save the range</button>
         </div>
     </div>
 </template>

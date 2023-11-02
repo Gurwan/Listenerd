@@ -13,6 +13,11 @@ img {
     width: 100%;
 }
 
+.big-button {
+    padding: 1rem!important;
+    margin: 1rem!important;
+}
+
 .info-profile-div {
     display: flex;
     justify-content: center;

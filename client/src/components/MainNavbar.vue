@@ -2,7 +2,12 @@
   <nav class="bg-indigo-500 p-4">
     <div class="container mx-auto flex items-center justify-between">
       <a class="text-white text-lg font-semibold" href="/">Home</a>
-      <ul class="flex space-x-4">
+      <div class="md:hidden">
+        <button @click="openMobileMenu" class="text-white hover:text-blue-300">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+      <ul class="ul-nav space-x-4">
         <div v-if="search_active">
           <input
             v-model="searchText"
@@ -18,6 +23,53 @@
         </li>
         <li class="nav-item" v-if="isAuth">
           <a class="text-white hover:text-blue-300" href="/profile">Profile</a>
+        </li>
+        <li class="nav-item" v-if="isAuth">
+          <a class="text-white hover:text-blue-300" href="/liked">Liked</a>
+        </li>
+        <li class="nav-item" v-if="isAuth">
+          <a class="text-white hover:text-blue-300" href="/toListen">To listen</a>
+        </li>
+        <li class="nav-item" v-if="isAuth">
+          <a class="text-white hover:text-blue-300" href="/following">Following</a>
+        </li>
+        <li class="nav-item" v-else>
+          <a class="text-white hover:text-blue-300" href="/login">Login</a>
+        </li>
+        <li class="nav-item" v-if="isAuth">
+          <a class="text-white hover:text-blue-300" href="/logout">Logout</a>
+        </li>
+        <li class="nav-item" v-else>
+          <a class="text-white hover:text-blue-300" href="/register">Register</a>
+        </li>
+      </ul>
+    </div>
+    <div class="md:hidden" :class="mobileMenu ? 'block' : 'hidden'">
+      <ul class="mt-2">
+        <div v-if="search_active">
+          <input
+            v-model="searchText"
+            @keyup.enter="searchAlbumsArtists"
+            class="px-3 border rounded-lg"
+            placeholder="Search something"
+          />
+        </div>
+        <li class="nav-item" v-if="onMainPage">
+          <a class="text-white hover:text-blue-300" href="#" @click="activateSearch">
+            <i class="fas fa-search"></i>
+          </a>
+        </li>
+        <li class="nav-item" v-if="isAuth">
+          <a class="text-white hover:text-blue-300" href="/profile">Profile</a>
+        </li>
+        <li class="nav-item" v-if="isAuth">
+          <a class="text-white hover:text-blue-300" href="/liked">Liked</a>
+        </li>
+        <li class="nav-item" v-if="isAuth">
+          <a class="text-white hover:text-blue-300" href="/toListen">To listen</a>
+        </li>
+        <li class="nav-item" v-if="isAuth">
+          <a class="text-white hover:text-blue-300" href="/following">Following</a>
         </li>
         <li class="nav-item" v-else>
           <a class="text-white hover:text-blue-300" href="/login">Login</a>
@@ -42,6 +94,7 @@ export default {
       searchText: '',
       isAuth: false,
       onMainPage: false,
+      mobileMenu: false,
     };
   },
   created() {
@@ -59,6 +112,9 @@ export default {
     }
   },
   methods: {
+    openMobileMenu() {
+      this.mobileMenu = !this.mobileMenu;
+    },
     activateSearch() {
       this.search_active = !this.search_active;
     },
@@ -70,3 +126,7 @@ export default {
 
 };
 </script>
+
+<style scoped>
+@import '../assets/styles/nav-style.css';
+</style>
