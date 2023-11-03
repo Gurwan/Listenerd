@@ -12,7 +12,7 @@
             <input type="password" placeholder="Password" id="password" v-model="password" class="form-input" @keyup.enter="login">
           </div>
           <div class="mt-6">
-            <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline-blue focus:border-blue-300">
+            <button type="submit" class="big-button bg-blue-500 text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline-blue focus:border-blue-300">
               Login
             </button>
           </div>

@@ -1,5 +1,3 @@
-const UserParams = require('../models/UserParams'); 
-
 class UserParamsHandler {
   constructor(db){
     this.users_params = db.collection('users-params');

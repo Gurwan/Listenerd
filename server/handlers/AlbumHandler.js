@@ -1,5 +1,3 @@
-const Album = require('../models/Album'); 
-
 class AlbumHandler {
 
   constructor(db){
