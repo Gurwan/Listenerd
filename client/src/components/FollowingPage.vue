@@ -1,7 +1,7 @@
 <template>
   <div>
       <main-navbar></main-navbar>
-      <scale-loader class="scale-loader" v-if="!artistsFollowedWithoutRelease.length" :loading="loading" :color="color" :size="size"></scale-loader>
+      <scale-loader class="scale-loader" v-if="!releaseValues.length" :loading="loading" :color="color" :size="size"></scale-loader>
       <div class="grid-list">
         <div v-for="data in releaseValues" :key="data[0]" class="p-4 relative flex-col items-center">
           <div v-if="data[0] != null">
