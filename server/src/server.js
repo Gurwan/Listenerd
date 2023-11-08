@@ -446,6 +446,24 @@ app.get('/user', authUser, async (req, res) => {
 });
 
 /**
+ * DELETE REST method allowing to delete a user account
+ */
+app.delete('/user', authUser, async (req, res) => {
+  const username = req.user.username;
+  const resControllerUser = await userController.deleteUser(username);
+  const resControllerParams = await userController.deleteUserParams(username);
+  if(resControllerUser[0]){
+    if(resControllerParams[0]){
+      res.status(200).send({message: 'User account fully deleted'});
+    } else {
+      res.status(resControllerParams[1]).send("Server error")
+    } 
+  } else {
+    res.status(resControllerUser[1]).send("Server error")
+  }
+});
+
+/**
  * Get content of a list among liked, to listen and followed artists lists
  */
 app.get('/list', authUser, async (req, res) => {

@@ -473,6 +473,48 @@ class UserController {
             return [false,500]
         }
     }
+
+    /**
+     * Method allowing to delete account of a user
+     * @param {*} username 
+     * @returns if success of the operation [true,success code] else [false, error code]
+    */
+    async deleteUser(username){
+        try {
+            const user = await this.userHandler.getUser(username);
+            if(user){
+              const resultHandler = await this.userHandler.deleteUser(username)
+              if(resultHandler){
+                return [true,200]
+              } else {
+                return [false,500]
+              }
+            } else {
+              return [false,404];
+            }
+        } catch (error){
+            console.log(error)
+            return [false,500];
+        }
+    }
+
+    /**
+     * This method allowing to delete the params associated with a specific user
+     * @param {*} username 
+     * @returns if success of the operation [true,success code] else [false, error code]
+     */
+    async deleteUserParams(username){
+        try {
+          const resultHandler = await this.userParamsHandler.deleteUserParams(username);
+          if(resultHandler){
+            return [true,200];
+          } else {
+            return [false,500];
+          }
+        } catch (error){
+            return [false,500];
+        }
+    }
 }
 
 module.exports = UserController;

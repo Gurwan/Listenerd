@@ -47,6 +47,23 @@ class UserParamsHandler {
       throw error;
     }
   }
+
+  /**
+   * Delete parameters of a user of the database 
+   * @param {String} username
+   */
+  async deleteUserParams(username){
+    try {
+      const res = await this.users_params.deleteOne({username: username})
+      if(res.deletedCount == 1){
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 module.exports = UserParamsHandler;

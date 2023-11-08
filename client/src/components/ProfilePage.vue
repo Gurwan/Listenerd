@@ -77,6 +77,9 @@
           </div>
 
           <button @click="saveRange" class="big-button bg-blue-500 text-white px-4 py-2 rounded">Save the range</button>
+          <div>
+            <button @click="deleteAccount" class="big-button bg-red-500 text-white px-4 py-2 rounded">Delete account</button>
+          </div>
         </div>
     </div>
 </template>
@@ -155,6 +158,21 @@ export default {
       axios.put('http://localhost:3001/gap', {dataToSend})
         .then(response => {
           console.log(response);
+        })
+        .catch(error => {
+          if(error != null){
+            //this.$router.push('/logout') 
+          }        
+        }
+      );
+    },
+    deleteAccount(){
+      const userId = localStorage.getItem('jwt_token');
+      axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
+      axios.delete('http://localhost:3001/user')
+        .then(response => {
+          console.log(response);
+          this.$router.push('/logout') 
         })
         .catch(error => {
           if(error != null){

@@ -49,6 +49,24 @@ class UserHandler {
     }
   }
 
+  /**
+   * Delete a User of the database 
+   * @param {String} username
+   */
+  async deleteUser(username){
+    try {
+      const res = await this.users.deleteOne({username: username})
+      if(res.deletedCount == 1){
+        return true;
+      } else {
+        console.log(res)
+        return false;
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+
 }
 
 module.exports = UserHandler;
