@@ -1,7 +1,7 @@
 <template>
   <div>
       <main-navbar></main-navbar>
-      <scale-loader class="scale-loader" v-if="!releaseValues.length" :loading="loading" :color="color" :size="size"></scale-loader>
+      <scale-loader class="scale-loader" v-if="!releaseValues.length && listNotNull" :loading="loading" :color="color" :size="size"></scale-loader>
       <div class="grid-list">
         <div v-for="data in releaseValues" :key="data[0]" class="p-4 relative flex-col items-center">
           <div v-if="data[0] != null">
@@ -35,6 +35,10 @@
         </router-link>
       </div> 
       </div>
+      <div v-if="releaseValues.length">
+        <button class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center" @click="clearFollowingList">
+          <i style="padding: 1rem;" class="fa-solid fa-trash"></i> <span style="padding:1rem">Clear your followed artists list</span></button>
+      </div>
 
   </div>
 </template>
@@ -52,7 +56,8 @@ components: {
 data() {
   return {
     releaseValues: [],
-    artistsFollowedWithoutRelease: []
+    artistsFollowedWithoutRelease: [],
+    listNotNull: true,
   };
 },
 created(){
@@ -76,6 +81,7 @@ created(){
         console.log(withoutR)
         this.artistsFollowedWithoutRelease = withoutR;
       } else {
+        this.listNotNull = false;
         console.error('API data error');
       }
     })
@@ -85,7 +91,24 @@ created(){
           console.log(error)
         }
     });
-},
+  },
+  methods: {
+    clearFollowingList(){
+      const userId = localStorage.getItem('jwt_token');
+      axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
+      axios.delete('http://localhost:3001/followed-list')
+      .then(response => {
+          console.log(response);
+          location.reload();
+      })
+      .catch(error => {
+        if(error != null){
+          console.log(error)
+          //this.$router.push('/logout') 
+        }        
+      });
+    }
+  }
 };
 </script>
 <style scoped>

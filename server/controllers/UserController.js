@@ -377,6 +377,37 @@ class UserController {
     }
 
     /**
+     * Clear a list
+     * @param {*} username 
+     * @param {*} list 0 if it is to listen list, 1 if it is liked list, 2 if it is followed artists.
+     * @returns if success of the operation [true,success code] else [false, error code]
+     */
+    async clearList(username,list){
+        try {
+            const user = await this.userHandler.getUser(username);
+            if(user){
+                const filter = {username:username};
+                var update;
+                if(list == 0){
+                    update = {$set: {toListen: []}};
+                } else if(list == 1){
+                    update = {$set: {liked: []}};
+                } else {
+                    update = {$set: {artistFollowed: []}};
+                }
+                const resUpdate = await this.userHandler.updateUser(filter,update);
+                if(resUpdate){
+                    return [true,200]
+                } else {
+                    return [false,500]
+                }
+            }
+        } catch (error){
+            return [false,500];
+        }
+    }
+
+    /**
      * Follow or unfollow an artist
      * @param {*} username 
      * @param {*} dataArtist 

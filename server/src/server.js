@@ -610,6 +610,45 @@ app.post('/check-list', authUser, async (req, res) => {
   }
 });
 
+/**
+ * DELETE REST method allowing to clear the followed artists list
+ */
+app.delete('/followed-list', authUser, async (req, res) => {
+  const username = req.user.username;
+  const resUserController = await userController.clearList(username,2);
+  if(resUserController[0]){
+    res.status(200).json({ message: 'List cleared'})
+  } else {
+    res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+/**
+ * DELETE REST method allowing to clear the to listen list
+ */
+app.delete('/to-listen-list', authUser, async (req, res) => {
+  const username = req.user.username;
+  const resUserController = await userController.clearList(username,0);
+  if(resUserController[0]){
+    res.status(200).json({ message: 'List cleared'})
+  } else {
+    res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+/**
+ * DELETE REST method allowing to clear the liked albums list
+ */
+app.delete('/liked-list', authUser, async (req, res) => {
+  const username = req.user.username;
+  const resUserController = await userController.clearList(username,1);
+  if(resUserController[0]){
+    res.status(200).json({ message: 'List cleared'})
+  } else {
+    res.status(500).json({ msg: 'Server error' });
+  }
+});
+
 /** This method starts the app */
 app.listen(port, () => {
   console.log(`Server side is running on localhost:${port}`);

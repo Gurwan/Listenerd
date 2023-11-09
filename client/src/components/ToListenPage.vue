@@ -8,6 +8,10 @@
           <p class="text-gray-600">{{ data[2][1] }} - {{ data[4] }}</p>
         </router-link>
       </div>
+      <div v-if="albumsValues.length">
+        <button class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center" @click="clearToListenList">
+          <i style="padding: 1rem;" class="fa-solid fa-trash"></i> <span style="padding:1rem">Clear your to listen albums list</span></button>
+      </div>
   </div>
 </template>
 
@@ -41,7 +45,24 @@ created(){
           this.$router.push('/logout') 
         }
     });
-},
+  },
+  methods: {
+    clearToListenList(){
+      const userId = localStorage.getItem('jwt_token');
+      axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
+      axios.delete('http://localhost:3001/to-listen-list')
+      .then(response => {
+          console.log(response);
+          location.reload();
+      })
+      .catch(error => {
+        if(error != null){
+          console.log(error)
+          //this.$router.push('/logout') 
+        }        
+      });
+    }
+  }
 };
 </script>
 <style scoped>
