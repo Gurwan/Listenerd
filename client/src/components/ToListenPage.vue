@@ -17,7 +17,7 @@
 
 <script>
 import axios from 'axios';
-import MainNavbar from './MainNavbar.vue'
+import MainNavbar from './MainNavbar.vue';
 export default {
 components: {
   "main-navbar": MainNavbar
@@ -28,7 +28,7 @@ data() {
   };
 },
 created(){
-  const userId = localStorage.getItem('jwt_token');
+  const userId = this.$cookies.get('jwt_token');
   axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
 
   axios.get('http://localhost:3001/list?list=0')
@@ -48,7 +48,7 @@ created(){
   },
   methods: {
     clearToListenList(){
-      const userId = localStorage.getItem('jwt_token');
+      const userId = this.$cookies.get('jwt_token');
       axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
       axios.delete('http://localhost:3001/to-listen-list')
       .then(response => {

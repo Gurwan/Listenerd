@@ -9,7 +9,7 @@
 
   export default {
     created() {
-      localStorage.removeItem('jwt_token');
+      this.$cookies.remove('jwt_token');
       router.push('/');
     },
  };

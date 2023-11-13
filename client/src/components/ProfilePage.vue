@@ -105,7 +105,7 @@ export default {
     };
   },
   created() {
-    const userId = localStorage.getItem('jwt_token');
+    const userId = this.$cookies.get('jwt_token');
     axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
 
     axios.get('http://localhost:3001/user')
@@ -152,7 +152,7 @@ export default {
   
   methods: {
     saveRange(){
-      const userId = localStorage.getItem('jwt_token');
+      const userId = this.$cookies.get('jwt_token');
       axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
       const dataToSend = this.params.gap;
       axios.put('http://localhost:3001/gap', {dataToSend})
@@ -167,7 +167,7 @@ export default {
       );
     },
     deleteAccount(){
-      const userId = localStorage.getItem('jwt_token');
+      const userId = this.$cookies.get('jwt_token');
       axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
       axios.delete('http://localhost:3001/user')
         .then(response => {
@@ -193,7 +193,7 @@ export default {
       }
     },
     changeCountry(){
-      const userId = localStorage.getItem('jwt_token');
+      const userId = this.$cookies.get('jwt_token');
       axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
       const dataToSend = this.country;
       axios.put('http://localhost:3001/country', {dataToSend})
@@ -208,7 +208,7 @@ export default {
       );
     },
     changeScale(){
-      const userId = localStorage.getItem('jwt_token');
+      const userId = this.$cookies.get('jwt_token');
       axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
       console.log(this.params.scale)
       const dataToSend = this.params.scale;
@@ -225,7 +225,7 @@ export default {
       );
     },
     savePic(){
-      const userId = localStorage.getItem('jwt_token');
+      const userId = this.$cookies.get('jwt_token');
       axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
       if(this.filePic){
         const formDataPicture = new FormData();

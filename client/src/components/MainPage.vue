@@ -15,7 +15,6 @@
 <script>
 import MainNavbar from './MainNavbar.vue'
 import axios from 'axios';
-
 export default {
   components: {
     "main-navbar": MainNavbar
@@ -44,7 +43,7 @@ export default {
     }
   },
   mounted() {
-    const userId = localStorage.getItem('jwt_token');
+    const userId = this.$cookies.get('jwt_token');
     axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
     axios.get('http://localhost:3001/new-releases')
     .then((response) => this.refreshData(response))

@@ -43,7 +43,8 @@ export default {
         password: this.password,
       });
       const token = response.data.token;
-      localStorage.setItem('jwt_token', token);
+      //set security to true, the path to the all website, and the None sameSite field.
+      this.$cookies.set('jwt_token',token,"2h",'/',null,true,"None");
       router.push('/');
     },
   },

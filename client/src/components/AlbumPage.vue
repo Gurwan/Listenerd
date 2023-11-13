@@ -58,6 +58,7 @@
 import axios from 'axios';
 import ScaleLoader from 'vue-spinner/src/ScaleLoader.vue';
 import MainNavbar from './MainNavbar.vue'
+
 export default {
   components: {
     "main-navbar": MainNavbar,
@@ -74,7 +75,7 @@ export default {
     };
   },
   created(){
-    const isAuthToken = localStorage.getItem('jwt_token');
+    const isAuthToken = this.$cookies.get('jwt_token');
     if(isAuthToken){
       this.isAuth = true;
     } else {
@@ -86,7 +87,7 @@ export default {
   },
   methods: {
     checkStatus(){
-      const userId = localStorage.getItem('jwt_token');
+      const userId = this.$cookies.get('jwt_token');
       axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
       const albumId = [this.albumData[0]]
       axios.post('http://localhost:3001/check-list', {albumId})
@@ -144,7 +145,7 @@ export default {
       } else if(this.rate >= this.params.gap[3][0] && this.rate <= this.params.gap[3][1]) {
         divRate.style.borderColor = this.params.gap[3][2];
       }
-      const userId = localStorage.getItem('jwt_token');
+      const userId = this.$cookies.get('jwt_token');
       axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
       const dataToSend = [this.albumData[0], this.rate]
       axios.put('http://localhost:3001/rate', {dataToSend})
@@ -187,7 +188,7 @@ export default {
      * @param {Integer} arg 0 if user wants to add album to his to listen list and 1 if he wants to add to it to his liked list
      */
      addAlbumToList(list){
-      const userId = localStorage.getItem('jwt_token');
+      const userId = this.$cookies.get('jwt_token');
       axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
       //required data to show the album in lists : id of album, name, id of main artist, cover and release date
       //only the id will be used if the album is already in the db

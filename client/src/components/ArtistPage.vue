@@ -30,7 +30,6 @@
 <script>
 import axios from 'axios';
 import SyncLoader from 'vue-spinner/src/SyncLoader.vue'
-
 import MainNavbar from './MainNavbar.vue'
 export default {
   components: {
@@ -45,7 +44,7 @@ export default {
     };
   },
   created() {
-    const isAuthToken = localStorage.getItem('jwt_token');
+    const isAuthToken = this.$cookies.get('jwt_token');
     if(isAuthToken){
       this.isAuth = true;
     } else {
@@ -58,7 +57,7 @@ export default {
   methods: {
     //0 means artist not followed 1 means already followed
     checkFollowStatus(){
-      const userId = localStorage.getItem('jwt_token');
+      const userId = this.$cookies.get('jwt_token');
       axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
       const artistId = [this.artistData[0]]
       axios.post('http://localhost:3001/check-follow', {artistId})
@@ -72,7 +71,7 @@ export default {
         });
     },
     followUnfollowArtist(){
-      const userId = localStorage.getItem('jwt_token');
+      const userId = this.$cookies.get('jwt_token');
       axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
       //number of followers = 0 if the artist isn't in the db
       const artistToFollow = [this.artistData[0],this.artistData[1],this.artistData[2]]

@@ -31,7 +31,7 @@ data() {
   };
 },
 created(){
-  const userId = localStorage.getItem('jwt_token');
+  const userId = this.$cookies.get('jwt_token');
   axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
 
   axios.get('http://localhost:3001/list?list=1')
@@ -53,7 +53,7 @@ created(){
   },
   methods: {
     clearLikedList(){
-      const userId = localStorage.getItem('jwt_token');
+      const userId = this.$cookies.get('jwt_token');
       axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
       axios.delete('http://localhost:3001/liked-list')
       .then(response => {

@@ -98,7 +98,7 @@ export default {
     };
   },
   created() {
-    const isAuthToken = localStorage.getItem('jwt_token');
+    const isAuthToken = this.$cookies.get('jwt_token');
     if(isAuthToken){
       this.isAuth = true;
     } else {
