@@ -1,6 +1,25 @@
 <template>
   <div>
       <main-navbar></main-navbar>
+      <div class="filter-bar">
+        <div class="filterby-div">
+          <p>FILTER BY</p>
+          <select>
+            <option selected value="">YEAR</option>
+            <option></option>
+          </select>
+          <select>
+            <option selected value="">ARTIST</option>
+            <option></option>
+          </select>
+        </div>
+        <div class="sortby-div">
+          <p>SORT BY</p>
+          <button>Title</button>
+          <button>Release Date</button>
+          <button>Your Rating</button>
+        </div>
+      </div>
       <div class="grid-list">
         <router-link v-for="data in albumsValues" :key="data[0]" :to="'/album/' + data[0]" class="p-4 flex flex-col items-center">
           <img :src="data[3]" alt="Image" class="max-w-full h-auto w-64 md:w-48 lg:w-32 xl:w-24 mb-2 mx-auto"> 

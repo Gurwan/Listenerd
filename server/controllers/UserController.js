@@ -161,7 +161,7 @@ class UserController {
                 switch(list){
                     case 0:
                     case '0':
-                        const resAlbumController = await albumController.getList(user.toListen,false,artistController);
+                        const resAlbumController = await albumController.getList(user.toListen,false,artistController,accessTokenSpotify);
                         if(resAlbumController[0]){
                             return [true,resAlbumController[1]];
                         } else {
@@ -171,7 +171,7 @@ class UserController {
                     case '1':    
                         //sort album by grade from now
                         user.liked.sort((a, b) => b.rate - a.rate);
-                        const resAlbumController1 = await albumController.getList(user.liked,true,artistController);
+                        const resAlbumController1 = await albumController.getList(user.liked,true,artistController,accessTokenSpotify);
                         const userParams = await this.userParamsHandler.getUserParams(username);     
                         if(resAlbumController1[0]){
                             const resultLiked = resAlbumController1[1];

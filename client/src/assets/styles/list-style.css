@@ -36,6 +36,89 @@ h2 {
   margin-bottom: 2rem;
 }
 
+.filter-bar {
+  font-size: 1.3rem;
+  color:#9ab;
+  background-color: rgba(27,32,38,255);
+  width: 75%;
+  margin: auto;
+  display: flex;
+  margin-top: 0.5rem;
+  align-items: center;
+}
+
+.filter-bar p {
+  padding-right: 0.5rem;
+  padding-left: 0.5rem;
+  margin: 5px;
+}
+
+.filter-bar select {
+  background-color: rgb(174, 174, 174);
+  color: white;
+  margin: 5px;
+  border-radius: 1rem;
+}
+
+.filterby-div {
+  display: flex;
+  align-items: center;
+  width: 40%;
+}
+
+.sortby-div {
+  display: flex;
+  align-items: center;
+  width: 60%;
+}
+
+.filter-bar button {
+  background-color: rgb(174, 174, 174);
+  border-radius: 1rem;
+  color: white;
+  padding: 0.5rem!important;
+  margin: 5px!important;
+}
+
+@media (max-width:1200px) {
+  .filter-bar {
+    font-size: 1rem;
+  }
+
+  .filter-bar select {
+    margin: 2px;
+    border-radius: 1rem;
+  }
+
+  .filterby-div {
+    width: 45%;
+  }
+  
+  .sortby-div {
+    width: 55%;
+  }
+}
+
+@media (max-width:1000px) {
+  .filter-bar {
+    font-size: 0.9rem;
+  }
+
+  .filter-bar select {
+    margin: 2px;
+    border-radius: 1rem;
+    font-size: 0.9rem;
+  }
+
+  .filterby-div {
+    width: 45%;
+  }
+  
+  .sortby-div {
+    width: 55%;
+  }
+}
+
 .artist-small-view {
   position: absolute;
   bottom: -1rem;

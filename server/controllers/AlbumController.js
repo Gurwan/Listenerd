@@ -42,7 +42,7 @@ class AlbumController {
      * @param {*} artistController 
      * @returns if success of the operation [true,albums of the list] else [false, error code]
      */
-    async getList(list,liked,artistController){
+    async getList(list,liked,artistController,accessTokenSpotify){
         try {
             if(list){
                 let ret = []

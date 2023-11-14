@@ -250,7 +250,7 @@ app.get('/album', async (req, res) => {
     const data = response.data
     artistData = [data.artists[0].id,data.artists[0].name]
     //id, title, id and name of artist, image cover, year, name of label, main genre, tracklist
-    albumData = [data.id,data.name,artistData,data.images[0].url,data.release_date,data.artist,data.label,data.genres[0], data.tracks.items];
+    albumData = [data.id,data.name,artistData,data.images[0].url,data.release_date,data.artist,data.label,data.genres[0], data.tracks.items, data.popularity];
     res.send(albumData)
   })
   .catch((error) => {
