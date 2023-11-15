@@ -38,7 +38,7 @@ h2 {
 
 .filter-bar {
   font-size: 1.3rem;
-  color:#9ab;
+  color:white;
   background-color: rgba(27,32,38,255);
   width: 75%;
   margin: auto;
@@ -54,8 +54,8 @@ h2 {
 }
 
 .filter-bar select {
-  background-color: rgb(174, 174, 174);
-  color: white;
+  color:white;
+  background-color: rgb(55 65 81)!important;
   margin: 5px;
   border-radius: 1rem;
 }
@@ -73,9 +73,7 @@ h2 {
 }
 
 .filter-bar button {
-  background-color: rgb(174, 174, 174);
   border-radius: 1rem;
-  color: white;
   padding: 0.5rem!important;
   margin: 5px!important;
 }
