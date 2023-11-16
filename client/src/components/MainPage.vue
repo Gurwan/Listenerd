@@ -75,6 +75,7 @@ export default {
         console.error('API data error');
       }
     },
+    
     /**
      * Add album to either the liked list or the to listen list of the user
      * @param {Integer} arg 0 if user wants to add album to his to listen list and 1 if he wants to add to it to his liked list

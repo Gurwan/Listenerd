@@ -163,7 +163,12 @@ class UserController {
                     case '0':
                         const resAlbumController = await albumController.getList(user.toListen,false,artistController,accessTokenSpotify);
                         if(resAlbumController[0]){
-                            return [true,resAlbumController[1]];
+                            const albumsToReturn = await this.checkList(username,resAlbumController[1]);
+                            if(albumsToReturn[0]){
+                                return [true,albumsToReturn[1]];
+                            } else {
+                                return [false,resAlbumController[1]];
+                            }
                         } else {
                             return [false,resAlbumController[1]]
                         }
@@ -174,8 +179,15 @@ class UserController {
                         const resAlbumController1 = await albumController.getList(user.liked,true,artistController,accessTokenSpotify);
                         const userParams = await this.userParamsHandler.getUserParams(username);     
                         if(resAlbumController1[0]){
-                            const resultLiked = resAlbumController1[1];
-                            return [true,{resultLiked,userParams}];
+                            const albumsToReturn = await this.checkList(username,resAlbumController1[1]);
+                            if(albumsToReturn[0]){
+                                const resultLiked = albumsToReturn[1];
+
+                                return [true,{resultLiked,userParams}];
+                            } else {
+                                const resultLiked = resAlbumController1[1];
+                                return [false,{resultLiked,userParams}];
+                            }
                         } else {
                             return [false,resAlbumController1[1]]
                         }
@@ -417,29 +429,35 @@ class UserController {
         try {
             let dataToReturn = [];
             for(let album in allData){
+                let firstI = 5;
+                let secondI = 6;
+                if(allData[album][5] != undefined){
+                    firstI = 6;
+                    secondI = 7;
+                }
                 let albumId = allData[album][0];
                 let retIsInList = await this.isInList(username,albumId);
                 if(retIsInList[0]){
                     let res = retIsInList[1][0];
                     if(res == 0){
-                        allData[album][5] = 1;
-                        allData[album][6] = 0;
+                        allData[album][firstI] = 1;
+                        allData[album][secondI] = 0;
                     } else if(res == -1){
-                        allData[album][5] = 0;
-                        allData[album][6] = 0;
+                        allData[album][firstI] = 0;
+                        allData[album][secondI] = 0;
                     } else {
                         if(res.res == 1){
-                            allData[album][5] = 0;
-                            allData[album][6] = 1;
+                            allData[album][firstI] = 0;
+                            allData[album][secondI] = 1;
                         } else {
-                            allData[album][5] = 1;
-                            allData[album][6] = 1;
+                            allData[album][firstI] = 1;
+                            allData[album][secondI] = 1;
                         }
                     }
                     dataToReturn.push(allData[album]);
                 } else {    
-                    album[5] = 0;
-                    album[6] = 0;
+                    album[firstI] = 0;
+                    album[secondI] = 0;
                     dataToReturn.push(allData[album]);
                 }
             }

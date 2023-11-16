@@ -63,13 +63,19 @@ h2 {
 .filterby-div {
   display: flex;
   align-items: center;
-  width: 40%;
+  width: 30%;
 }
 
 .sortby-div {
   display: flex;
   align-items: center;
-  width: 60%;
+  width: 39%;
+}
+
+.hide-div {
+  display: flex;
+  align-items: center;
+  width: 30%;
 }
 
 .filter-bar button {
