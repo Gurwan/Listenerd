@@ -25,7 +25,7 @@
         </div>
       </div>
       <div class="grid-list">
-        <div  v-for="data in sortAlbumsList" :key="data[0]" class="p-4 flex flex-col items-center">
+        <div v-for="data in sortAlbumsList" :key="data[0]" class="p-4 flex flex-col items-center">
           <router-link :to="'/album/' + data[0]" >
             <img :src="data[3]" alt="Image" class="max-w-full h-auto w-64 md:w-48 lg:w-32 xl:w-24 mb-2 mx-auto"> 
             <p class="font-bold">{{ data[1] }}</p>
