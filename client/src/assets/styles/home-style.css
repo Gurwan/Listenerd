@@ -3,6 +3,18 @@
     grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 1rem;
 }
+
+@media (min-width: 1300px) and (max-width: 1550px) {
+  .grid-home {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (min-width: 1000px) and (max-width: 1300px) {
+  .grid-home {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
   
 @media (min-width: 750px) and (max-width: 1000px) {
   .grid-home {

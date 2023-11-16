@@ -568,6 +568,20 @@ app.post('/album', authUser, async (req, res) => {
 });
 
 /**
+ * REST POST method allowing to get albums with their status in each list of the user
+ */
+app.post('/album-user', authUser, async (req, res) => {
+  const allData = req.body.allData;
+  const username = req.user.username;
+  const resUserController = await userController.checkList(username,allData);
+  if(resUserController[0]){
+    res.status(200).json({ message: resUserController[1]})
+  } else {
+    res.status(resUserController[1]).json({msg: 'Server error'})
+  }
+});
+
+/**
  * POST REST method allowing to a user to follow/unfollow an artist
  */
 app.post('/artist', authUser, async (req, res) => {

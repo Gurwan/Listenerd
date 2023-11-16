@@ -408,6 +408,48 @@ class UserController {
     }
 
     /**
+     * Add field to album value in a albums list to allow to the user to manage these list from the list view
+     * @param {*} username 
+     * @param {*} allData list of albums
+     * @returns if success of the operation [true,new list with added fields] else [false, error code]
+     */
+    async checkList(username,allData){
+        try {
+            let dataToReturn = [];
+            for(let album in allData){
+                let albumId = allData[album][0];
+                let retIsInList = await this.isInList(username,albumId);
+                if(retIsInList[0]){
+                    let res = retIsInList[1][0];
+                    if(res == 0){
+                        allData[album][5] = 1;
+                        allData[album][6] = 0;
+                    } else if(res == -1){
+                        allData[album][5] = 0;
+                        allData[album][6] = 0;
+                    } else {
+                        if(res.res == 1){
+                            allData[album][5] = 0;
+                            allData[album][6] = 1;
+                        } else {
+                            allData[album][5] = 1;
+                            allData[album][6] = 1;
+                        }
+                    }
+                    dataToReturn.push(allData[album]);
+                } else {    
+                    album[5] = 0;
+                    album[6] = 0;
+                    dataToReturn.push(allData[album]);
+                }
+            }
+            return [true,dataToReturn];   
+        } catch (error){
+            return [false,500];
+        }
+    }
+
+    /**
      * Follow or unfollow an artist
      * @param {*} username 
      * @param {*} dataArtist 
