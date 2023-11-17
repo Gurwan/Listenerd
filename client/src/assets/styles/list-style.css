@@ -129,6 +129,18 @@ h2 {
   right: 1rem;
 }
 
+@media (min-width: 1300px) and (max-width: 1550px) {
+  .grid-list {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (min-width: 1000px) and (max-width: 1300px) {
+  .grid-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+
 @media (min-width: 1000px) and (max-width: 1500px) {
   .artist-small-view {
     bottom: -2rem;
