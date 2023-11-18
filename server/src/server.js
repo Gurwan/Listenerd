@@ -186,6 +186,26 @@ function formatAlbum(response){
 }
 
 /**
+ * Method used to transform the artist format of Spotify API to Listenerd format to print artist data
+ * @param {*} response artist data from Spotify API
+ * @returns artist format adapted to Listenerd front-end
+ */
+function formatArtist(response){
+  const artists = response.data.artists.items
+  let i = 0
+  let arrayArtist = []
+  while(i < artists.length){
+    //id and name of artist
+    if(artists[i].images.length != 0){
+      const artistData = [artists[i].id,artists[i].name, artists[i].images[0].url]
+      arrayArtist.push(artistData)
+    }
+    i = i+1
+  }
+  return arrayArtist;
+}
+
+/**
  * Method allowing the search feature
  * Need to be improve with the filter feature
  */
@@ -194,18 +214,37 @@ app.get('/search', async (req, res) => {
   while(accessTokenSpotify == null){
     accessTokenSpotify = await getSpotifyAccessToken();
   }
-  axios.get(`https://api.spotify.com/v1/search?q=${req.query.search}&type=album&limit=50`, {
-    headers: {
-      Authorization: `Bearer ${accessTokenSpotify}`,
-    },
-  })
-  .then((response) => {
-    const arrayAlbum = formatAlbum(response);
-    res.send(arrayAlbum)
-  })
-  .catch((error) => {
-    console.error('Spotify API error', error);
-  });
+  let field = req.query.field;
+  if(field == 'album'){
+    axios.get(`https://api.spotify.com/v1/search?q=${req.query.search}&type=album&limit=50`, {
+      headers: {
+        Authorization: `Bearer ${accessTokenSpotify}`,
+      },
+    })
+    .then((response) => {
+      const arrayAlbum = formatAlbum(response);
+      res.send({arrayAlbum,field});
+    })
+    .catch((error) => {
+      console.error('Spotify API error', error);
+    });
+  } else if(field == 'artist'){
+    axios.get(`https://api.spotify.com/v1/search?q=${req.query.search}&type=artist&limit=50`, {
+      headers: {
+        Authorization: `Bearer ${accessTokenSpotify}`,
+      },
+    })
+    .then((response) => {
+      const arrayArtist = formatArtist(response);
+      res.send({arrayArtist,field})
+    })
+    .catch((error) => {
+      console.error('Spotify API error', error);
+    });
+  } else if(field == 'user'){
+    //implement this condition if I implemented the friendship system
+  }
+ 
 });
 
 /**

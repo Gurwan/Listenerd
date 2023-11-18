@@ -2,6 +2,11 @@
     display: flex;
 }
 
+#selectSearchCate {
+    margin-right: 1rem;
+    display: inline-block;
+}
+
 button {
     padding: 0!important;
     margin:0.5rem!important;

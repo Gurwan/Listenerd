@@ -4,6 +4,12 @@
     gap: 1rem;
 }
 
+.img-artist {
+  width: 16rem;
+  height: 16rem;
+  margin-bottom: 1rem;
+}
+
 @media (min-width: 1300px) and (max-width: 1550px) {
   .grid-home {
     grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
@@ -26,10 +32,36 @@
     .grid-home {
       grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     }
+    .img-artist {
+      width: 12rem;
+      height: 12rem;
+    }
   }
 
 @media (max-width: 449px) {
     .grid-home {
       grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
     }
+}
+
+@media (min-width: 300px) and (max-width: 449px) {
+  .img-artist {
+    width: 16rem;
+    height: 16rem;
   }
+}
+
+
+@media (min-width: 220px) and (max-width: 300px) {
+  .img-artist {
+    width: 11rem;
+    height: 11rem;
+  }
+}
+
+@media (max-width: 220px) {
+  .img-artist {
+    width: 7rem;
+    height: 7rem;
+  }
+}

@@ -9,6 +9,11 @@
       </div>
       <ul class="ul-nav space-x-4">
         <div v-if="search_active">
+          <select v-model="searchField" @change="changeFieldSearch" id="selectSearchCate" class="bg-gray-50 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+            <option value="album">Albums</option>
+            <option value="artist">Artists</option>
+            <option disabled value="user">Users</option>
+          </select>
           <input
             v-model="searchText"
             @keyup.enter="searchAlbumsArtists"
@@ -47,6 +52,11 @@
     <div class="md:hidden" :class="mobileMenu ? 'block' : 'hidden'">
       <ul class="mt-2">
         <div v-if="search_active">
+          <select v-model="searchField" @change="changeFieldSearch" id="selectSearchCate" class="bg-gray-50 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+            <option value="album">Albums</option>
+            <option value="artist">Artists</option>
+            <option disabled value="user">Users</option>
+          </select>
           <input
             v-model="searchText"
             @keyup.enter="searchAlbumsArtists"
@@ -95,6 +105,7 @@ export default {
       isAuth: false,
       onMainPage: false,
       mobileMenu: false,
+      searchField: 'album'
     };
   },
   created() {
@@ -119,9 +130,13 @@ export default {
       this.search_active = !this.search_active;
     },
     searchAlbumsArtists() {
-      this.$emit('search-text-changed', this.searchText);
+      this.$emit('search-text-changed', this.searchText, this.searchField);
       this.search_active = false;
-    }
+    },
+    changeFieldSearch(e){
+      const v = e.target.value;
+      this.searchField = v;
+    },
   },
 
 };
