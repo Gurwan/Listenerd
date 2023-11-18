@@ -242,7 +242,17 @@ app.get('/search', async (req, res) => {
       console.error('Spotify API error', error);
     });
   } else if(field == 'user'){
-    //implement this condition if I implemented the friendship system
+    const resUserController = await userController.getUsers(req.query.search);
+    if(resUserController[0]){
+      const returnUsers = []
+      const arrayUser = resUserController[1];
+      for(let i in arrayUser){
+        returnUsers.push([arrayUser[i].username,arrayUser[i].profilePicture]);
+      }
+      res.send({returnUsers,field})
+    } else {
+      res.status(500).send("Server error")
+    }
   }
  
 });
@@ -479,6 +489,21 @@ app.get('/user', authUser, async (req, res) => {
     } else {
       res.status(200).send({user,preview});
     }
+  } else {
+    res.status(resControllerUser[1]).send("Server error")
+  }
+});
+
+/**
+ * GET REST method allowing to get user information to display the user profile page for other users
+ */
+app.get('/user-public', async (req, res) => {
+  const username = req.query.username;
+  const resControllerUser = await userController.getUserData(username,albumController,artistController);
+  if(resControllerUser[0]){
+    const user = resControllerUser[1];
+    const preview = resControllerUser[2];
+    res.status(200).send({user,preview});
   } else {
     res.status(resControllerUser[1]).send("Server error")
   }

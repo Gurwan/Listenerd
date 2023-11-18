@@ -67,6 +67,31 @@ class UserController {
     }
 
     /**
+     * Allows to return users, this function is called during the search procedure
+     * @param {*} search 
+     * @returns if success of the operation [true,list of users] else [false, error code]
+     */
+    async getUsers(search){
+        try {
+            let findResult = null
+            if(search != null){
+                findResult = await this.userHandler.getUsers(search);
+            } else {
+                findResult = await this.userHandler.getAllUsers();
+            }
+            const ret = await findResult.toArray((e,ret) => {
+                if(e){
+                    return [false,500]
+                }
+                return ret;
+            })
+            return [true,ret];
+        } catch (error){
+            return [false,500];
+        }
+    }
+
+    /**
      * Method allowing to get the country of the connected user
      * Used to adapt the albums displayed on the home page
      * @param {*} username 

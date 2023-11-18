@@ -29,6 +29,14 @@
           </router-link>
         </div>
       </div>
+      <div v-if="userValues.length >= 1" class="grid-home">
+        <div v-for="data in userValues" :key="data[0]" class="p-4 flex flex-col items-center">
+          <router-link  :to="'/user/' + data[0]" >
+            <img :src="loadPhoto(data[1]) || require('@/assets/images/empty_pp.jpg')" alt="Image" class="img-artist"> 
+            <p class="font-bold">{{ data[0] }}</p>
+          </router-link>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -45,6 +53,7 @@ export default {
     return {
       albumsValues: [],
       artistValues: [],
+      userValues: [],
       searchText: '',
       isAuth: false,
     };
@@ -59,14 +68,15 @@ export default {
   },
   methods: {
     searchAlbumsArtists(searchText,searchField) {
-      console.log("ca commence à chercher")
       axios.get(`http://localhost:3001/search?search=${searchText}&field=${searchField}`)
         .then((response) => {
-          console.log(response)
           if(response.data.field == 'album'){
             this.refreshData(response.data.arrayAlbum)
           } else if(response.data.field == 'artist'){
             this.refreshArtistData(response.data.arrayArtist)
+          } else if(response.data.field == 'user'){
+            console.log(response.data.returnUsers)
+            this.refreshUserList(response.data.returnUsers)
           }
         })
         .catch(error => {
@@ -75,18 +85,42 @@ export default {
     },
     refreshArtistData(response) {
       const allData = response;
-      console.log(allData)
       if (Array.isArray(allData) && allData.length > 0) {
         this.albumsValues = [];
+        this.userValues = [];
         this.artistValues = allData;
       } else {
         console.error('API data error');
       } 
     },
+    refreshUserList(response){
+      const allData = response;
+      if (Array.isArray(allData) && allData.length > 0) {
+        this.albumsValues = [];
+        this.artistValues = [];
+        this.userValues = allData;
+      } else {
+        console.error('API data error');
+      } 
+    },
+    loadPhoto(data){
+      if(data == null){
+        return null
+      }
+      const byteCharacters = atob(data.data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: data.contentType });
+      return URL.createObjectURL(blob);
+    },
     refreshData(response) {
       const allData = response;
       if (Array.isArray(allData) && allData.length > 0) {
         this.artistValues = [];
+        this.userValues = [];
         if(this.isAuth){
           const userId = this.$cookies.get('jwt_token');
           axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;

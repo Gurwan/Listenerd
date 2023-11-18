@@ -32,6 +32,34 @@ class UserHandler {
   }
 
   /**
+   * Get all users of the database
+   * For search feature
+   * @returns all the users
+   */
+  async getAllUsers(){
+    try {
+      const users = await this.users.find({});
+      return users;
+    } catch (error){
+      throw error;
+    }
+  }
+
+  /**
+   * Get users with username 
+   * @param {*} s 
+   */
+  async getUsers(s){
+    try {
+      const regexSearch = new RegExp(s, 'i');
+      const users = await this.users.find({username: regexSearch});
+      return users;
+    } catch (error){
+      throw error;
+    }
+  }
+
+  /**
    * Update data of a User : photo can be updated, lists, artists followed and country 
    * @param {String} username
    * @param {*} update : {$set { key: value}}

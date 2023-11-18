@@ -9,6 +9,7 @@ import FollowingPage from './components/FollowingPage.vue';
 import LogoutPage from './components/LogoutPage.vue';
 import LikedPage from './components/LikedPage.vue';
 import ToListenPage from './components/ToListenPage.vue';
+import UserPage from './components/UserPage.vue';
 import authCheck from './authCheck.js'; 
 
 const routes = [
@@ -36,6 +37,11 @@ const routes = [
         path: '/login',
         name: 'Login page',
         component: LoginPage,
+      },
+      {
+        path: '/user/:username',
+        name: 'User',
+        component: UserPage,
       },
       {
         path: '/profile',
