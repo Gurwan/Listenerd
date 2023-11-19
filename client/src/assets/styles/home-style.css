@@ -10,6 +10,16 @@
   margin-bottom: 1rem;
 }
 
+.button-follow-artist {
+  background-color: black;
+  color: white;
+  padding: 1rem!important;
+}
+
+svg {
+  margin-right: 0.5rem!important;
+}
+
 @media (min-width: 1300px) and (max-width: 1550px) {
   .grid-home {
     grid-template-columns: repeat(5, minmax(0, 1fr)) !important;

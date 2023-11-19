@@ -445,6 +445,31 @@ class UserController {
     }
 
     /**
+     * In a list of artists, check which one is followed by the user connected
+     * @param {*} username 
+     * @param {*} allData 
+     * @returns if success of the operation [true,list of artist with the data] else [false, error code]
+     */
+    async checkFollow(username,allData){
+        try {
+            let dataToReturn = [];
+            for(let i in allData){
+                let artistId = allData[i][0];
+                let retIsFollowed = await this.isFollowed(username,artistId);
+                if(retIsFollowed[0]){
+                    allData[i][3] = retIsFollowed[1];
+                    dataToReturn.push(allData[i]);
+                } else {
+                    return retIsFollowed;
+                }
+            }
+            return [true,dataToReturn];
+        } catch (error){
+            return [false,500];
+        }
+    }
+
+    /**
      * Add field to album value in a albums list to allow to the user to manage these list from the list view
      * @param {*} username 
      * @param {*} allData list of albums
