@@ -49,10 +49,25 @@
       </div>
       <div v-if="userValues.length >= 1" class="grid-home">
         <div v-for="data in userValues" :key="data[0]" class="p-4 flex flex-col items-center">
-          <router-link  :to="'/user/' + data[0]" >
-            <img :src="loadPhoto(data[1]) || require('@/assets/images/empty_pp.jpg')" alt="Image" class="img-artist"> 
-            <p class="font-bold">{{ data[0] }}</p>
-          </router-link>
+          <div v-if="data[0] != this.usernameConnected">
+            <router-link  :to="'/user/' + data[0]" >
+              <img :src="loadPhoto(data[1]) || require('@/assets/images/empty_pp.jpg')" alt="Image" class="img-artist"> 
+              <p class="font-bold">{{ data[0] }}</p>
+            </router-link>
+          </div>
+          <div v-else>
+            <router-link  :to="'/profile/'" >
+              <img :src="loadPhoto(data[1]) || require('@/assets/images/empty_pp.jpg')" alt="Image" class="img-artist"> 
+              <p class="font-bold">{{ data[0] }}</p>
+            </router-link>
+          </div>
+
+          <div v-if="isAuth && data[0] != this.usernameConnected">
+            <a class="text-white hover:text-blue-300 aList" href="#" @click="handleFriendship(data)">
+                    <i v-if="data[2] == 0" class="fa-solid fa-user-plus fa-2xl icon-add-album"></i>
+                    <i v-else class="fa-solid fa-user-xmark fa-2xl icon-add-album"></i>
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -74,6 +89,7 @@ export default {
       userValues: [],
       searchText: '',
       isAuth: false,
+      usernameConnected: null,
     };
   },
   created(){
@@ -93,13 +109,39 @@ export default {
           } else if(response.data.field == 'artist'){
             this.refreshArtistData(response.data.arrayArtist)
           } else if(response.data.field == 'user'){
-            console.log(response.data.returnUsers)
             this.refreshUserList(response.data.returnUsers)
           }
         })
         .catch(error => {
           console.error('API request error :', error);
         });
+    },
+    getUsername(){
+      const userId = this.$cookies.get('jwt_token');
+      axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
+      axios.get(`http://localhost:3001/username`)
+        .then((response) => {
+          this.usernameConnected = response.data.message;
+        })
+        .catch(error => {
+          console.error('API request error :', error);
+        });
+    },
+    handleFriendship(data){
+      const userId = this.$cookies.get('jwt_token');
+      axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
+      const withUserId = data[0]
+      axios.post('http://localhost:3001/friend/', {withUserId})
+            .then((response) => {
+              if(response.data.message == 0){
+                this.userValues[this.userValues.indexOf(data)][2] = 0;
+              } else if(response.data.message == 1){
+                this.userValues[this.userValues.indexOf(data)][2] = 1;
+              } 
+            })
+            .catch(error => {
+                console.error('API request error :', error);
+          });
     },
     refreshArtistData(response) {
       const allData = response;
@@ -129,7 +171,21 @@ export default {
       if (Array.isArray(allData) && allData.length > 0) {
         this.albumsValues = [];
         this.artistValues = [];
-        this.userValues = allData;
+        if(this.isAuth){
+          const userId = this.$cookies.get('jwt_token');
+          axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
+          axios.post('http://localhost:3001/friends/', {allData})
+            .then((response) => {
+              const dataWithList = response.data.message;
+              this.getUsername();
+              this.userValues = dataWithList;
+            })
+            .catch(error => {
+                console.error('API request error :', error);
+          });
+        } else {
+          this.userValues = allData;
+        }
       } else {
         console.error('API data error');
       } 

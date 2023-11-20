@@ -6,6 +6,12 @@
         </div>
         <div class="info-profile-div">
             <h1>{{ username }}</h1>
+            <div v-if="isAuth">
+              <a class="text-white hover:text-blue-300 aList" href="#" @click="handleFriendship(username)">
+                    <i v-if="friendWith == 0" class="fa-solid fa-user-plus fa-2xl icon-add-album"></i>
+                    <i v-else class="fa-solid fa-user-xmark fa-2xl icon-add-album"></i>
+              </a>
+            </div>
         </div>
         <div class="super-div-list">
             <div class="list-preview" id="list-preview-liked">
@@ -41,11 +47,19 @@ export default {
     return {
       username: "",
       pic: null,
+      friendWith: 0,
+      isAuth: false
     };
   },
   created() {
     const username = this.$route.params.username;
-
+    const isAuthToken = this.$cookies.get('jwt_token');
+    if(isAuthToken){
+      this.friendWithLogUser(username);
+      this.isAuth = true;
+    } else {
+      this.isAuth = false;
+    }
     axios.get(`http://localhost:3001/user-public/?username=${username}`)
       .then(async response => {
         const user = response.data.user;
@@ -85,6 +99,38 @@ export default {
   },
   
   methods: {
+    handleFriendship(username){
+      const userId = this.$cookies.get('jwt_token');
+      axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
+      const withUserId = username;
+      axios.post('http://localhost:3001/friend/', {withUserId})
+            .then((response) => {
+              if(response.data.message == 0){
+                this.friendWith = 0;
+              } else if(response.data.message == 1){
+                this.friendWith = 1;
+              } 
+            })
+            .catch(error => {
+                console.error('API request error :', error);
+          });
+    },
+    friendWithLogUser(username){
+      const userId = this.$cookies.get('jwt_token');
+      axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
+      const withUserId = username;
+      axios.get(`http://localhost:3001/friend?withUser=${withUserId}`)
+            .then((response) => {
+              if(response.data.message == 0){
+                this.friendWith = 0;
+              } else if(response.data.message == 1){
+                this.friendWith = 1;
+              } 
+            })
+            .catch(error => {
+                console.error('API request error :', error);
+          });
+    }
   },
 };
 </script>

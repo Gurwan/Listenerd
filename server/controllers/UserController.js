@@ -3,12 +3,17 @@ const UserParamsHandler = require('../handlers/UserParamsHandler');
 const bcrypt = require('bcrypt');
 const User = require('../models/User.js');
 const UserParams = require('../models/UserParams.js');
+const Friend = require('../models/Friend.js');
+const FriendHandler = require('../handlers/FriendHandler.js');
 
-
+/**
+ * Allow all user feature including extension of user : parameters (UserParams) and friendship (Friend)
+ */
 class UserController {
     constructor(db){
         this.userHandler = new UserHandler(db);
         this.userParamsHandler = new UserParamsHandler(db);
+        this.friendHandler = new FriendHandler(db);
     }
 
     /**
@@ -609,6 +614,113 @@ class UserController {
                 }
             } else {
                 return [false,400]
+            }
+        } catch (error){
+            return [false,500]
+        }
+    }
+
+    /**
+     * Add a friend to a user
+     * @param {*} username 
+     * @param {*} withUser 
+     * @returns if success of the operation [true,success code] else [false, error code]
+     */
+    async manageFriendship(username,withUser){
+        try {
+            const user = await this.userHandler.getUser(username);
+            if(user){
+                const resHandler = await this.friendHandler.getFriend(username,withUser);
+                if(resHandler){
+                    const resHandlerDelete = await this.friendHandler.deleteFriend(username,withUser);
+                    if(resHandlerDelete){
+                        return [true,0]
+                    }
+                } else {
+                    const newFriendship = new Friend(username,withUser);
+                    await this.friendHandler.createFriend(newFriendship);
+                    return [true,1]
+                }
+            } else {
+                return [false,401];
+            }
+        } catch (error){
+            return [false,500]
+        }
+    }
+
+    /**
+     * Check if someone is friend with another user
+     * @param {*} username 
+     * @param {*} withUser 
+     * @returns if success of the operation [true,result code 1 if user is friend with withUser otherwise 0] else [false, error code]
+     */
+    async isFriend(username,withUser){
+        try {
+            const user = await this.userHandler.getUser(username);
+            console.log(username)
+            console.log(withUser)
+            if(user){
+                const resHandler = await this.friendHandler.getFriend(username,withUser);
+                if(resHandler){
+                    return [true,1]
+                } else {
+                    return [true,0]
+                }
+            } else {
+                return [false,401];
+            }
+        } catch (error){
+            return [false,500]
+        }
+    }
+
+    /**
+     * Allows to get all friends of a user
+     * @param {*} username 
+     * @returns if success of the operation [true,list of friends] else [false, error code]
+     */
+    async getFriends(username,allData){
+        try {
+            const user = await this.userHandler.getUser(username);
+            if(user){
+                let usersWithFriendData = []
+                for(let i in allData){
+                    let res = await this.friendHandler.getFriend(username,allData[i][0]);
+                    if(res){
+                        allData[i][2] = 1
+                    } else {
+                        allData[i][2] = 0
+                    }
+                    usersWithFriendData.push(allData[i]);
+                }
+                return [true,usersWithFriendData];
+            } else {
+                return [false,401];
+            }
+        } catch (error){
+            return [false,500]
+        }
+    }
+
+    /**
+     * This method allows to remove a friend from the friendship list of a user
+     * @param {*} username 
+     * @param {*} withUser 
+     * @returns if success of the operation [true,success code] else [false, error code]
+     */
+    async removeFriend(username,withUser){
+        try {
+            const user = await this.userHandler.getUser(username);
+            if(user){
+                const resHandler = await this.friendHandler.deleteFriend(username,withUser);
+                if(resHandler){
+                    return [true,200]
+                } else {
+                    return [false,500]
+                }
+            } else {
+                return [false,401];
             }
         } catch (error){
             return [false,500]

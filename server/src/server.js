@@ -495,6 +495,14 @@ app.get('/user', authUser, async (req, res) => {
 });
 
 /**
+ * GET REST method allowing to get username of the user connected
+ */
+app.get('/username', authUser, async (req, res) => {
+  const username = req.user.username;
+  res.status(200).send({message : username});
+});
+
+/**
  * GET REST method allowing to get user information to display the user profile page for other users
  */
 app.get('/user-public', async (req, res) => {
@@ -628,6 +636,48 @@ app.post('/album', authUser, async (req, res) => {
     res.status(200).json({ message: resUserController[1]})
   } else {
     res.status(resUserController[1]).json({msg: 'Server error'})
+  }
+});
+
+/**
+ * POST REST method allowing to add a friendship
+ */
+app.post('/friend', authUser, async (req, res) => {
+  const username = req.user.username;
+  const friendWith = req.body.withUserId;
+  const resUserController = await userController.manageFriendship(username,friendWith);
+  if(resUserController[0]){
+    res.status(200).json({ message: resUserController[1]})
+  } else {
+    res.status(resUserController[1]).json({msg: 'Server error'})
+  }
+});
+
+/**
+ * Check friendship between the user and one another
+ */
+app.get('/friend', authUser, async (req, res) => {
+  const username = req.user.username;
+  const withUser = req.query.withUser;
+  const resUserController = await userController.isFriend(username,withUser);
+  if(resUserController[0]){
+    res.status(200).send({message : resUserController[1]});
+  } else {
+    res.status(resUserController[1]).send("Server error")
+  }
+});
+
+/**
+ * Get all friends of a user
+ */
+app.post('/friends', authUser, async (req, res) => {
+  const username = req.user.username;
+  const allData = req.body.allData;
+  const resUserController = await userController.getFriends(username,allData);
+  if(resUserController[0]){
+    res.status(200).send({ message: resUserController[1]});
+  } else {
+    res.status(resUserController[1]).send("Server error")
   }
 });
 
