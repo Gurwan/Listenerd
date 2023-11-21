@@ -1,6 +1,6 @@
 <template>
   <div>
-    <main-navbar @search-text-changed="searchAlbumsArtists"></main-navbar>
+    <main-navbar @search-text-changed="searchAlbumsArtists" @instantText="instantSearch"></main-navbar>
     <div>
       <div v-if="albumsValues.length >= 1" class="grid-home">
         <div v-for="data in albumsValues" :key="data[0]" class="p-4 flex flex-col items-center">
@@ -90,6 +90,7 @@ export default {
       searchText: '',
       isAuth: false,
       usernameConnected: null,
+      instantResult: [],
     };
   },
   created(){
@@ -102,7 +103,7 @@ export default {
   },
   methods: {
     searchAlbumsArtists(searchText,searchField) {
-      axios.get(`http://localhost:3001/search?search=${searchText}&field=${searchField}`)
+      axios.get(`http://localhost:3001/search?search=${searchText}&field=${searchField}&limit=50`)
         .then((response) => {
           if(response.data.field == 'album'){
             this.refreshData(response.data.arrayAlbum)
@@ -126,6 +127,70 @@ export default {
         .catch(error => {
           console.error('API request error :', error);
         });
+    },
+    instantSearch(searchText,searchField,mobile){
+      let ulElement = document.getElementById('ulInstantResult');
+      if(mobile){
+        ulElement = document.getElementById('ulInstantResultM');
+      }
+      if(searchText.length>=1){
+        axios.get(`http://localhost:3001/search?search=${searchText}&field=${searchField}&limit=6`)
+        .then(async (response) =>  {
+          if(response.data.field == 'album'){
+            this.instantResult = response.data.arrayAlbum
+          } else if(response.data.field == 'artist'){
+            this.instantResult = response.data.arrayArtist
+          } else if(response.data.field == 'user'){
+            this.instantResult = response.data.returnUsers
+            const userId = this.$cookies.get('jwt_token');
+            axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
+            axios.get(`http://localhost:3001/username`)
+              .then((response) => {
+                this.usernameConnected = response.data.message;
+                if(ulElement != null){
+                  while (ulElement.firstChild) {
+                    ulElement.removeChild(ulElement.firstChild);
+                  }
+                  for(let i in this.instantResult){
+                    var li = document.createElement("li");
+                    var a = document.createElement("a");
+                    a.appendChild(document.createTextNode(this.instantResult[i][0]));
+                    if(this.instantResult[i][0] == this.usernameConnected){
+                      a.href = `/profile/`
+                    } else {
+                      a.href = `/${searchField}/${this.instantResult[i][0]}`
+                    }
+                    li.appendChild(a);
+                    ulElement.appendChild(li);
+                  }
+                }
+              })
+              .catch(error => {
+                console.error('API request error :', error);
+              });
+          }        
+          if(ulElement != null && searchField != 'user'){
+            while (ulElement.firstChild) {
+              ulElement.removeChild(ulElement.firstChild);
+            }
+            for(let i in this.instantResult){
+              var li = document.createElement("li");
+              var a = document.createElement("a");
+              a.appendChild(document.createTextNode(this.instantResult[i][1]));
+              a.href = `/${searchField}/${this.instantResult[i][0]}`
+              li.appendChild(a);
+              ulElement.appendChild(li);
+            }
+          }
+        })
+        .catch(error => {
+          console.error('API request error :', error);
+        });
+      } else {
+        while (ulElement.firstChild) {
+          ulElement.removeChild(ulElement.firstChild);
+        }
+      }
     },
     handleFriendship(data){
       const userId = this.$cookies.get('jwt_token');

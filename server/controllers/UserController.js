@@ -658,8 +658,6 @@ class UserController {
     async isFriend(username,withUser){
         try {
             const user = await this.userHandler.getUser(username);
-            console.log(username)
-            console.log(withUser)
             if(user){
                 const resHandler = await this.friendHandler.getFriend(username,withUser);
                 if(resHandler){

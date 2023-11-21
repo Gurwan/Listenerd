@@ -216,7 +216,7 @@ app.get('/search', async (req, res) => {
   }
   let field = req.query.field;
   if(field == 'album'){
-    axios.get(`https://api.spotify.com/v1/search?q=${req.query.search}&type=album&limit=50`, {
+    axios.get(`https://api.spotify.com/v1/search?q=${req.query.search}&type=album&limit=${req.query.limit}`, {
       headers: {
         Authorization: `Bearer ${accessTokenSpotify}`,
       },
@@ -226,10 +226,10 @@ app.get('/search', async (req, res) => {
       res.send({arrayAlbum,field});
     })
     .catch((error) => {
-      console.error('Spotify API error', error);
+      console.error('Spotify API error');
     });
   } else if(field == 'artist'){
-    axios.get(`https://api.spotify.com/v1/search?q=${req.query.search}&type=artist&limit=50`, {
+    axios.get(`https://api.spotify.com/v1/search?q=${req.query.search}&type=artist&limit=${req.query.limit}`, {
       headers: {
         Authorization: `Bearer ${accessTokenSpotify}`,
       },
@@ -239,7 +239,7 @@ app.get('/search', async (req, res) => {
       res.send({arrayArtist,field})
     })
     .catch((error) => {
-      console.error('Spotify API error', error);
+      console.error('Spotify API error');
     });
   } else if(field == 'user'){
     const resUserController = await userController.getUsers(req.query.search);

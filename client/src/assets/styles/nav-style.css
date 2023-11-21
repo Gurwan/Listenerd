@@ -1,5 +1,16 @@
 .ul-nav {
     display: flex;
+    align-items: center;
+}
+
+#searchAndCate {
+    display: flex!important;
+    text-align: center;
+    align-items: center;
+}
+
+.searchAndInstantResult {
+    display: inline-block;
 }
 
 #selectSearchCate {
@@ -7,12 +18,37 @@
     display: inline-block;
 }
 
+.ulInstantResult {
+    position: absolute;
+    background-color: white;
+    width: 11.5%;
+    margin-top: 0.5rem;
+}
+
+.ulInstantResult li {
+    border: 1px solid black;
+    padding: 0.25rem;
+    width: 100%;
+}
+
 button {
     padding: 0!important;
     margin:0.5rem!important;
 }
+
 @media (max-width:767px) {
     .ul-nav {
         display: none;
+    }
+    .ulInstantResult {
+        position: relative;
+        background-color: white;
+        width: 50%;
+        left: 25%;
+        margin-top: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    #selectSearchCate {
+        margin-bottom: 0.5rem;
     }
 }

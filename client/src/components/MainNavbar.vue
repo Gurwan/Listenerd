@@ -8,18 +8,24 @@
         </button>
       </div>
       <ul class="ul-nav space-x-4">
-        <div v-if="search_active">
+        <div v-if="search_active" id="searchAndCate">
           <select v-model="searchField" @change="changeFieldSearch" id="selectSearchCate" class="bg-gray-50 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
             <option value="album">Albums</option>
             <option value="artist">Artists</option>
             <option value="user">Users</option>
           </select>
-          <input
+          <div id="searchAndInstantResult">
+            <input
             v-model="searchText"
             @keyup.enter="searchAlbumsArtists"
             class="px-3 border rounded-lg"
             placeholder="Search something"
-          />
+            @input="instantSearch"
+            />
+            <ul id="ulInstantResult" class="ulInstantResult">
+            </ul>
+          </div>
+
         </div>
         <li class="nav-item" v-if="onMainPage">
           <a class="text-white hover:text-blue-300" href="#" @click="activateSearch">
@@ -55,14 +61,19 @@
           <select v-model="searchField" @change="changeFieldSearch" id="selectSearchCate" class="bg-gray-50 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
             <option value="album">Albums</option>
             <option value="artist">Artists</option>
-            <option disabled value="user">Users</option>
+            <option value="user">Users</option>
           </select>
-          <input
-            v-model="searchText"
-            @keyup.enter="searchAlbumsArtists"
-            class="px-3 border rounded-lg"
-            placeholder="Search something"
-          />
+          <div id="searchAndInstantResult">
+            <input
+              v-model="searchText"
+              @keyup.enter="searchAlbumsArtists"
+              class="px-3 border rounded-lg"
+              placeholder="Search something"
+              @input="instantSearchM"
+            />
+            <ul class="ulInstantResult" id="ulInstantResultM">
+            </ul>
+          </div>
         </div>
         <li class="nav-item" v-if="onMainPage">
           <a class="text-white hover:text-blue-300" href="#" @click="activateSearch">
@@ -105,7 +116,8 @@ export default {
       isAuth: false,
       onMainPage: false,
       mobileMenu: false,
-      searchField: 'album'
+      searchField: 'album',
+      instantResult: []
     };
   },
   created() {
@@ -136,6 +148,12 @@ export default {
     changeFieldSearch(e){
       const v = e.target.value;
       this.searchField = v;
+    },
+    instantSearch(){
+      this.$emit('instantText', this.searchText, this.searchField,false);
+    },
+    instantSearchM(){
+      this.$emit('instantText', this.searchText, this.searchField,true);
     },
   },
 
