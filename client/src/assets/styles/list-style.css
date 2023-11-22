@@ -37,13 +37,14 @@ h2 {
 }
 
 .filter-bar {
-  font-size: 1.3rem;
+  font-size: 1rem;
   color:white;
   background-color: rgba(27,32,38,255);
-  width: 75%;
-  margin: auto;
-  display: flex;
+  display: block;
+  width: 100%;
+  padding: 1rem;
   margin-top: 0.5rem;
+  justify-content: center;
   align-items: center;
 }
 
@@ -63,25 +64,39 @@ h2 {
 .filterby-div {
   display: flex;
   align-items: center;
-  width: 30%;
+  width: 100%;
+  justify-content: center;
 }
 
 .sortby-div {
   display: flex;
   align-items: center;
-  width: 39%;
+  width: 100%;
+  justify-content: center;
 }
 
 .hide-div {
   display: flex;
   align-items: center;
-  width: 30%;
+  width: 100%;
+  justify-content: center;
 }
 
 .filter-bar button {
   border-radius: 1rem;
   padding: 0.5rem!important;
   margin: 5px!important;
+}
+
+@media (min-width: 1200px) and (max-width:1600px) {
+  .filter-bar {
+    font-size: 1rem;
+  }
+
+  .filter-bar select {
+    margin: 2px;
+    border-radius: 1rem;
+  }
 }
 
 @media (max-width:1200px) {
@@ -92,14 +107,6 @@ h2 {
   .filter-bar select {
     margin: 2px;
     border-radius: 1rem;
-  }
-
-  .filterby-div {
-    width: 45%;
-  }
-  
-  .sortby-div {
-    width: 55%;
   }
 }
 
@@ -112,14 +119,6 @@ h2 {
     margin: 2px;
     border-radius: 1rem;
     font-size: 0.9rem;
-  }
-
-  .filterby-div {
-    width: 45%;
-  }
-  
-  .sortby-div {
-    width: 55%;
   }
 }
 
@@ -158,6 +157,42 @@ h2 {
   .artist-small-view {
     bottom: -1rem;
     right: 0rem;
+  }
+}
+
+@media (min-width: 675px) and (max-width: 950px) {
+  .filter-bar {
+    margin-bottom: 2rem;
+  }
+}
+
+@media (min-width: 460px) and (max-width: 675px) {
+  .filter-bar {
+    margin-bottom: 2rem;
+  }
+}
+
+@media (min-width: 360px) and (max-width: 460px) {
+  .filter-bar {
+    padding: 0.5rem;
+    margin-bottom: 2rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .filter-bar {
+    padding: 0.5rem;
+    margin-bottom: 2rem;
+    font-size: 0.7rem;
+  }
+  .filterby-div, .hide-div, .sortby-div {
+    display: block;
+  }
+  .filter-bar select {
+    margin: 1px;
+    width: 100%;
+    border-radius: 1rem;
+    font-size: 0.6rem;
   }
 }
 
