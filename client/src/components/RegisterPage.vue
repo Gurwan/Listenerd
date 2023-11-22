@@ -31,6 +31,7 @@
         </form>
       </div>
     </div>
+    <FlashAlert :flashMessage="errorMsg" />
   </div>
 
 </template>
@@ -39,19 +40,23 @@
 import axios from 'axios';
 import router from '../router.js'; 
 import MainNavbar from './MainNavbar.vue'
+import FlashAlert from './FlashAlert.vue'
 export default {
   components: {
-    "main-navbar": MainNavbar
+    "main-navbar": MainNavbar,
+    FlashAlert
   },
   data() {
     return {
       username: '',
       password: '',
-      repeat_password: ''
+      repeat_password: '',
+      errorMsg: null
     };
   },
   methods: {
     async register() {
+      this.errorMsg = null;
       if(this.username.length >= 4){
         if(this.password == this.repeat_password){
           if(this.password.length >= 8){
@@ -61,13 +66,13 @@ export default {
             });
             router.push('/login');
           } else {
-            alert('The password must contain at least 8 characters');
+            this.errorMsg = 'The password must contain at least 8 characters';
           }
         } else {
-          alert('Both passwords must be identical');
+          this. errorMsg = 'Both passwords must be identical';
         }
       } else {
-          alert('The username must contain at least 4 characters');
+        this.errorMsg = 'The username must contain at least 4 characters';
       }
     },
   },

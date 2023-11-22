@@ -404,7 +404,7 @@ app.post('/user', async (req,res) => {
   if(resController[0]){
     jwt.sign({user:{id: resController[1]}},'listenerd_secret_key',
     {expiresIn: 7200}, (err, token) => {
-     if(err) throw err;
+     //if(err) throw err;
      res.status(201).json({ token })
     })
   } else {

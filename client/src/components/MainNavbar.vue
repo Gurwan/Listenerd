@@ -1,7 +1,9 @@
 <template>
   <nav class="bg-indigo-500 p-4">
     <div class="container mx-auto flex items-center justify-between">
-      <a class="text-white text-lg font-semibold" href="/">Home</a>
+      <a class="text-white text-lg font-semibold" href="/">
+        <img id="logo-webapp" :src="require('@/assets/images/logo.png')" alt="Logo"/>
+      </a>
       <div class="navbar-mobile">
         <button @click="openMobileMenu" class="text-white hover:text-blue-300">
           <i class="fas fa-bars"></i>
