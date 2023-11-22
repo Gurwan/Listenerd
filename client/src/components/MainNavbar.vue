@@ -1,8 +1,9 @@
 <template>
   <nav class="bg-indigo-500 p-4">
     <div class="container mx-auto flex items-center justify-between">
-      <a class="text-white text-lg font-semibold" href="/">
+      <a id="a-route-home" class="text-white text-lg font-semibold" href="/">
         <img id="logo-webapp" :src="require('@/assets/images/logo.png')" alt="Logo"/>
+        <span v-if="!search_active" class="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">Listenerd</span>
       </a>
       <div class="navbar-mobile">
         <button @click="openMobileMenu" class="text-white hover:text-blue-300">
@@ -57,7 +58,7 @@
         </li>
       </ul>
     </div>
-    <div :class="mobileMenu ? 'block' : 'hidden'">
+    <div id="divMenuMobile" :class="mobileMenu ? 'block' : 'hidden'">
       <ul class="mt-2">
         <div v-if="search_active">
           <select v-model="searchField" @change="changeFieldSearch" id="selectSearchCate" class="bg-gray-50 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
