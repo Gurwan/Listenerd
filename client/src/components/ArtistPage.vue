@@ -15,7 +15,7 @@
               <p v-if="followStatus == 0" class="text-lg">Follow {{ artistData[1] }} to be aware of these new releases</p>
               <p v-else class="text-lg">Stop following {{ artistData[1] }} </p>
               <i v-if="followStatus == 0" class="fa-solid fa-square-plus fa-2xl icon-follow-artist"> FOLLOW</i>
-              <i v-else class="fa-solid fa-square-plus fa-2xl icon-follow-artist"> UN FOLLOW</i>
+              <i v-else class="fa-solid fa-square-minus fa-2xl icon-follow-artist"> U N FOLLOW</i>
             </a>
             <div class="items-center justify-center" id="spotifyPlayerDiv"></div>
           </div>

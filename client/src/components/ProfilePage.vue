@@ -35,6 +35,18 @@
             </router-link>
           </div>
         </div>
+        <div class="friend-div">
+          <p>Friend with</p>
+          <div class="list-friends" id="friend-with">
+
+          </div>
+        </div>
+        <div class="friend-div">
+          <p>Friend of</p>
+          <div class="list-friends" id="friend-of">
+            
+          </div>
+        </div>
         <div class="change-super-div">
           <div class="change-div">
             <label for="countrySelect" class="block text-gray-700 text-sm font-bold mb-2">You can change you country here </label>
@@ -126,20 +138,20 @@ export default {
           const byteArray = new Uint8Array(byteNumbers);
           const blob = new Blob([byteArray], { type: user.profilePicture.contentType });
           this.pic = URL.createObjectURL(blob);
-          if(previewCovers[0].length == 3){
+        }
+        if(previewCovers[0].length == 3){
             let element = document.getElementById("list-preview-toListen");
             element.style.backgroundImage = `url(${previewCovers[0][0]}), url(${previewCovers[0][1]}), url(${previewCovers[0][2]})`;
-          }
+        }
 
-          if(previewCovers[1].length == 3){
-            let element = document.getElementById("list-preview-liked");
-            element.style.backgroundImage = `url(${previewCovers[1][0]}), url(${previewCovers[1][1]}), url(${previewCovers[1][2]})`;
-          }
+        if(previewCovers[1].length == 3){
+          let element = document.getElementById("list-preview-liked");
+          element.style.backgroundImage = `url(${previewCovers[1][0]}), url(${previewCovers[1][1]}), url(${previewCovers[1][2]})`;
+        }
 
-          if(previewCovers[2].length == 3){
-            let element = document.getElementById("list-preview-artist");
-            element.style.backgroundImage = `url(${previewCovers[2][0]}), url(${previewCovers[2][1]}), url(${previewCovers[2][2]})`;
-          }
+        if(previewCovers[2].length == 3){
+          let element = document.getElementById("list-preview-artist");
+          element.style.backgroundImage = `url(${previewCovers[2][0]}), url(${previewCovers[2][1]}), url(${previewCovers[2][2]})`;
         }
       })
       .catch(error => {
@@ -148,6 +160,7 @@ export default {
           console.log(error)
         }
       });
+      this.findFriends();
   },
   
   methods: {
@@ -165,6 +178,75 @@ export default {
           }        
         }
       );
+    },
+    findFriends(){
+      const userId = this.$cookies.get('jwt_token');
+      axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
+      axios.get(`http://localhost:3001/friends/`)
+        .then(response => {
+          const friendsWithList = response.data.message[0];
+          var friendWith = document.getElementById("friend-with");
+          var ul = document.createElement("ul");
+          friendsWithList.forEach(function(user) {
+            var li = document.createElement("li");
+            var a = document.createElement("a");
+            a.textContent = user[0];
+            a.href = '/user/' + user[0]
+            var img = document.createElement("img");
+            if(user[1] != null){
+              let byteCharacters = atob(user[1].data);
+              let byteNumbers = new Array(byteCharacters.length);
+              for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+              }
+              let byteArray = new Uint8Array(byteNumbers);
+              let blob = new Blob([byteArray], { type: user[1].contentType });
+              img.src = URL.createObjectURL(blob);
+            } else {
+              img.src = require('@/assets/images/empty_pp.jpg');
+            }
+            img.classList.add("img-user-preview")
+            a.appendChild(img)
+            a.classList.add("a-user-preview")
+            li.appendChild(a)
+            ul.appendChild(li);
+          });
+          friendWith.appendChild(ul);
+
+          const friendsOfList = response.data.message[1];
+          var friendOf = document.getElementById("friend-of");
+          var ulOf = document.createElement("ul");
+          friendsOfList.forEach(function(user) {
+            var li = document.createElement("li");
+            var a = document.createElement("a");
+            a.textContent = user[0];
+            a.href = '/user/' + user[0]
+            var img = document.createElement("img");
+            if(user[1] != null){
+              let byteCharacters = atob(user[1].data);
+              let byteNumbers = new Array(byteCharacters.length);
+              for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+              }
+              let byteArray = new Uint8Array(byteNumbers);
+              let blob = new Blob([byteArray], { type: user[1].contentType });
+              img.src = URL.createObjectURL(blob);
+            } else {
+              img.src = require('@/assets/images/empty_pp.jpg');
+            }
+            img.classList.add("img-user-preview")
+            a.appendChild(img)
+            a.classList.add("a-user-preview")
+            li.appendChild(a)
+            ulOf.appendChild(li);
+          });
+          friendOf.appendChild(ulOf);
+        })
+       .catch(error => {
+         console.error('API error:', error);
+       });
+
+
     },
     deleteAccount(){
       const userId = this.$cookies.get('jwt_token');

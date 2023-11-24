@@ -10,6 +10,9 @@ import LogoutPage from './components/LogoutPage.vue';
 import LikedPage from './components/LikedPage.vue';
 import ToListenPage from './components/ToListenPage.vue';
 import UserPage from './components/UserPage.vue';
+import UserLikedPage from './components/UserLikedPage.vue';
+import UserToListenPage from './components/UserToListenPage.vue';
+import UserFollowingPage from './components/UserFollowingPage.vue';
 import authCheck from './authCheck.js'; 
 
 const routes = [
@@ -56,16 +59,31 @@ const routes = [
         beforeEnter: authCheck,
       },
       {
+        path: '/user-liked/:username',
+        name: 'Liked albums user',
+        component: UserLikedPage,
+      },
+      {
         path: '/toListen',
         name: 'Albums to listen',
         component: ToListenPage,
         beforeEnter: authCheck,
       },
       {
+        path: '/user-toListen/:username',
+        name: 'To listen albums user',
+        component: UserToListenPage,
+      },
+      {
         path: '/following',
-        name: 'Followed artist',
+        name: 'Followed artists',
         component: FollowingPage,
         beforeEnter: authCheck,
+      },
+      {
+        path: '/user-following/:username',
+        name: 'Followed artists user',
+        component: UserFollowingPage,
       },
       {
         path: '/logout',

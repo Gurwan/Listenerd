@@ -13,9 +13,54 @@ img {
     width: 100%;
 }
 
+.list-friends {
+    overflow-y: auto;
+}
+
+.list-friends ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+}
+
 .big-button {
     padding: 1rem!important;
     margin: 1rem!important;
+}
+
+.friend-div {
+    display: flex;
+    border-color: black;
+    border-width: 0.1rem;
+    padding-top: 1rem;
+    margin: 0.5rem;
+}
+
+.friend-div p {
+    margin-right: 1rem;
+    font-weight: bold;
+    margin-left: 1rem;
+}
+
+.friend-div li {
+    display: block;
+    align-items: center;
+    justify-content: center;
+}
+
+.img-user-preview {
+    width: auto;
+    height: max-content;
+    vertical-align: middle;
+    padding: 0.5rem;
+    margin-right: 0.5rem;
+}
+
+.a-user-preview {
+    display: block;
+    width: 6rem;
+    text-align: center;
 }
 
 .info-profile-div {

@@ -702,6 +702,55 @@ class UserController {
     }
 
     /**
+     * Get friends in two way of a User
+     * @param {*} username 
+     * @returns if success of the operation [true,[list of friends in the way user => other, list of friends in the other way]] else [false, error code]
+     */
+    async getRelationship(username){
+        try {
+            const user = await this.userHandler.getUser(username);
+            if(user){
+                const friendWith = await this.friendHandler.getFriendsWith(username);
+                const retWith = await friendWith.toArray((e,ret) => {
+                    if(e){
+                        return [false,500]
+                    }
+                    return ret;
+                });
+                const friendOf = await this.friendHandler.getFriendsOf(username);
+                const retOf = await friendOf.toArray((e,ret) => {
+                    if(e){
+                        return [false,500]
+                    }      
+                    return ret;
+                });
+
+                let friendsWith = []
+
+                for(let i in retWith){
+                    let userFriendWith = await this.userHandler.getUser(retWith[i].friendWith);
+                    let dataToSend = [userFriendWith.username,userFriendWith.profilePicture]
+                    friendsWith.push(dataToSend)
+                }
+
+                let friendsOf = []
+
+                for(let i in retOf){
+                    let userFriendOf = await this.userHandler.getUser(retOf[i].originalUser);
+                    let dataToSend = [userFriendOf.username,userFriendOf.profilePicture]
+                    friendsOf.push(dataToSend)
+                }
+
+                return [true,[friendsWith,friendsOf]];
+            } else {
+                return [false,401];
+            }
+        } catch (error){
+            return [false,500]
+        }
+    }
+
+    /**
      * This method allows to remove a friend from the friendship list of a user
      * @param {*} username 
      * @param {*} withUser 

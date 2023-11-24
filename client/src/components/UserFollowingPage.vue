@@ -34,12 +34,7 @@
           <p class="font-bold">{{ data[6] }}</p>
         </router-link>
       </div> 
-      </div>
-      <div v-if="releaseValues.length">
-        <button class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center" @click="clearFollowingList">
-          <i style="padding: 1rem;" class="fa-solid fa-trash"></i> <span style="padding:1rem">Clear your followed artists list</span></button>
-      </div>
-
+    </div>
   </div>
 </template>
 
@@ -61,10 +56,8 @@ data() {
   };
 },
 created(){
-  const userId = this.$cookies.get('jwt_token');
-  axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
-
-  axios.get('http://localhost:3001/list?list=2')
+  const username = this.$route.params.username;
+  axios.get(`http://localhost:3001/user-list?list=2&user=${username}`)
     .then(response => {
       const allData = response.data;
       if (Array.isArray(allData) && allData.length > 0) {
@@ -91,21 +84,6 @@ created(){
     });
   },
   methods: {
-    clearFollowingList(){
-      const userId = this.$cookies.get('jwt_token');
-      axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
-      axios.delete('http://localhost:3001/followed-list')
-      .then(response => {
-          console.log(response);
-          location.reload();
-      })
-      .catch(error => {
-        if(error != null){
-          console.log(error)
-          //this.$router.push('/logout') 
-        }        
-      });
-    }
   }
 };
 </script>

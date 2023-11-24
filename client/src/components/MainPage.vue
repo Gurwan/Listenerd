@@ -143,31 +143,48 @@ export default {
           } else if(response.data.field == 'user'){
             this.instantResult = response.data.returnUsers
             const userId = this.$cookies.get('jwt_token');
-            axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
-            axios.get(`http://localhost:3001/username`)
-              .then((response) => {
-                this.usernameConnected = response.data.message;
-                if(ulElement != null){
+            if(userId != null){
+              axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
+              axios.get(`http://localhost:3001/username`)
+                .then((response) => {
+                  this.usernameConnected = response.data.message;
+                  if(ulElement != null){
+                    while (ulElement.firstChild) {
+                      ulElement.removeChild(ulElement.firstChild);
+                    }
+                    for(let i in this.instantResult){
+                      let li = document.createElement("li");
+                      let a = document.createElement("a");
+                      a.appendChild(document.createTextNode(this.instantResult[i][0]));
+                      if(this.instantResult[i][0] == this.usernameConnected){
+                        a.href = `/profile/`
+                      } else {
+                        a.href = `/${searchField}/${this.instantResult[i][0]}`
+                      }
+                      li.appendChild(a);
+                      ulElement.appendChild(li);
+                    }
+                  }
+                })
+                .catch(error => {
+                  console.error('API request error :', error);
+                });
+            } else {
+              if(ulElement != null){
                   while (ulElement.firstChild) {
                     ulElement.removeChild(ulElement.firstChild);
                   }
                   for(let i in this.instantResult){
-                    var li = document.createElement("li");
-                    var a = document.createElement("a");
+                    let li = document.createElement("li");
+                    let a = document.createElement("a");
                     a.appendChild(document.createTextNode(this.instantResult[i][0]));
-                    if(this.instantResult[i][0] == this.usernameConnected){
-                      a.href = `/profile/`
-                    } else {
-                      a.href = `/${searchField}/${this.instantResult[i][0]}`
-                    }
+                    a.href = `/${searchField}/${this.instantResult[i][0]}`
                     li.appendChild(a);
                     ulElement.appendChild(li);
                   }
                 }
-              })
-              .catch(error => {
-                console.error('API request error :', error);
-              });
+            }
+            
           }        
           if(ulElement != null && searchField != 'user'){
             while (ulElement.firstChild) {

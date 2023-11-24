@@ -29,6 +29,24 @@ class FriendHandler {
         throw error;
       }
     }
+
+    async getFriendsWith(originalUser){
+      try {
+        const friendsWith = await this.friend.find({originalUser: originalUser});
+        return friendsWith;
+      } catch (error){
+        throw error;
+      }
+    }
+
+    async getFriendsOf(friendWith){
+      try {
+        const friendsOf = await this.friend.find({friendWith: friendWith});
+        return friendsOf;
+      } catch (error){
+        throw error;
+      }
+    }
   
     /**
      * Delete friend of a user

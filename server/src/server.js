@@ -551,6 +551,21 @@ app.get('/list', authUser, async (req, res) => {
 });
 
 /**
+ * Get content of a user list among liked, to listen and followed artists lists
+ */
+app.get('/user-list', authUser, async (req, res) => {
+  const username = req.query.user;
+  const list = req.query.list;
+  const accessTokenSpotify = await getSpotifyAccessToken();
+  const resUserController = await userController.getUserList(username,list,artistController,albumController,accessTokenSpotify);
+  if(resUserController[0]){
+    res.status(200).send(resUserController[1]);
+  } else {
+    res.status(resUserController[1]).send("Server error")
+  }
+});
+
+/**
  * PUT REST method allowing to change the profile picture of the user
  */
 app.put('/user-picture', authUser, async (req, res) => {
@@ -674,6 +689,32 @@ app.post('/friends', authUser, async (req, res) => {
   const username = req.user.username;
   const allData = req.body.allData;
   const resUserController = await userController.getFriends(username,allData);
+  if(resUserController[0]){
+    res.status(200).send({ message: resUserController[1]});
+  } else {
+    res.status(resUserController[1]).send("Server error")
+  }
+});
+
+/**
+ * Get all friends of a user
+ */
+app.get('/friends', authUser, async (req, res) => {
+  const username = req.user.username;
+  const resUserController = await userController.getRelationship(username);
+  if(resUserController[0]){
+    res.status(200).send({ message: resUserController[1]});
+  } else {
+    res.status(resUserController[1]).send("Server error")
+  }
+});
+
+/**
+ * Get all friends of a user
+ */
+app.get('/friends-user', async (req, res) => {
+  const username = req.query.user;
+  const resUserController = await userController.getRelationship(username);
   if(resUserController[0]){
     res.status(200).send({ message: resUserController[1]});
   } else {
