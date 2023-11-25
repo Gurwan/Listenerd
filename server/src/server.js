@@ -723,6 +723,20 @@ app.get('/friends-user', async (req, res) => {
 });
 
 /**
+ * Get all friends of a user
+ */
+app.get('/friends-rate', authUser, async (req, res) => {
+  const username = req.user.username;
+  const albumId = req.query.albumId;
+  const resUserController = await userController.getRateFriends(username,albumId);
+  if(resUserController[0]){
+    res.status(200).send({ message: resUserController[1]});
+  } else {
+    res.status(resUserController[1]).send("Server error")
+  }
+});
+
+/**
  * REST POST method allowing to get albums with their status in each list of the user
  */
 app.post('/album-user', authUser, async (req, res) => {

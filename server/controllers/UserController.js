@@ -674,6 +674,44 @@ class UserController {
     }
 
     /**
+     * Get the rate of a friend of the user connected for a specific album
+     * @param {*} username 
+     * @param {*} albumId 
+     * @returns if success of the operation [true,list of user with their rate of the album] else [false, error code]
+     */
+    async getRateFriends(username,albumId){
+        try {
+            const user = await this.userHandler.getUser(username);
+            if(user){
+                const friendsWith = await this.friendHandler.getFriendsWith(username);
+                const friendsArray = await friendsWith.toArray((e,ret) => {
+                    if(e){
+                        return [false,500]
+                    }
+                    return ret;
+                });
+
+                let userArrayFriends = []
+
+                for(let i in friendsArray){
+                    let userFriendWith = await this.userHandler.getUser(friendsArray[i].friendWith);
+                    if(userFriendWith.liked.some(album => album.id === albumId)){
+                        let rate = userFriendWith.liked.find(album => album.id === albumId).rate;
+                        let dataToSend = [userFriendWith.username,userFriendWith.profilePicture,rate];
+                        userArrayFriends.push(dataToSend)
+                    }
+                }
+
+                return [true,userArrayFriends];
+            } else {
+                return [false,401];
+            }
+        } catch (error){
+            return [false,500]
+        }
+    }
+
+    /**
      * Allows to get all friends of a user
      * @param {*} username 
      * @returns if success of the operation [true,list of friends] else [false, error code]

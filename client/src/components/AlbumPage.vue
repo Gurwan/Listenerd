@@ -29,6 +29,12 @@
                     <input type="number" min="0" max="20" step="0.5" placeholder="0" id="input-rate" class="text-center input-rate" v-model="rate" @input="rateChange"/>
                     <span v-if="params.scale != 'empty'" class="span20">{{params.scale}}</span>
                   </div>
+                  <div class="rate-friends">
+                      <p id="rate-friend-p">Rate of your friends</p>
+                      <div class="list-friends" id="friend-with">
+            
+                      </div>
+                  </div>
                 </div>
             </div>
         </div>
@@ -71,7 +77,8 @@ export default {
       alreadyLiked: false,
       alreadyToListen: false,
       rate: 0,
-      params: null
+      params: null,
+      rateFriends: []
     };
   },
   created(){
@@ -159,12 +166,69 @@ export default {
         }
       });
     },
+    getRateFriends(albumId){
+      const userId = this.$cookies.get('jwt_token');
+      axios.defaults.headers.common['Authorization'] = `Bearer ${userId}`;
+      axios.get(`http://localhost:3001/friends-rate?albumId=${albumId}`)
+        .then(response => {
+          this.rateFriends = response.data.message;
+          var friendElement = document.getElementById("friend-with");
+          var ul = document.createElement("ul");
+          this.rateFriends.forEach(function(user) {
+            var li = document.createElement("li");
+            var a = document.createElement("a");
+            var p = document.createElement("p");
+            if(user[2] != -1){
+              p.textContent = user[2];
+            } else {
+              return;
+            }
+            if(user[0].length > 10){
+              a.textContent = user[0].substring(0, 10);
+            } else {
+              a.textContent = user[0];
+            }
+            a.href = '/user/' + user[0]
+            var img = document.createElement("img");
+            if(user[1] != null){
+              let byteCharacters = atob(user[1].data);
+              let byteNumbers = new Array(byteCharacters.length);
+              for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+              }
+              let byteArray = new Uint8Array(byteNumbers);
+              let blob = new Blob([byteArray], { type: user[1].contentType });
+              img.src = URL.createObjectURL(blob);
+            } else {
+              img.src = require('@/assets/images/empty_pp.jpg');
+            }
+            img.classList.add("img-user-preview")
+            a.appendChild(img)
+            a.classList.add("a-user-preview")
+            li.appendChild(a)
+            li.appendChild(p)
+            ul.appendChild(li);
+          });
+          if(this.rateFriends.length == 0){
+            var li = document.createElement("li");
+            var p = document.createElement("p");
+            p.textContent = "You don't have friend who liked this album";
+            li.appendChild(p);
+            ul.appendChild(li);
+          }
+          friendElement.appendChild(ul);
+        })
+        .catch(error => {
+          console.error('API error:', error);
+        });
+    },
     getAlbumData(albumId) {
       axios.get(`http://localhost:3001/album?albumId=${albumId}`)
         .then(response => {
           this.albumData = response.data;
           if(this.isAuth){
-            this.checkStatus();          
+            this.checkStatus();  
+            this.getRateFriends(albumId);        
           }
           const randomTrack = response.data[8][Math.floor(Math.random() * response.data[8].length)];
           this.loadSpotifyPlayer(randomTrack.id)

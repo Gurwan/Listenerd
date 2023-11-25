@@ -16,6 +16,12 @@
     border-radius: 9999px;
 }
 
+#rate-friend-p {
+    font-weight: bolder;
+    margin-bottom: 1rem;
+    margin-top: 1rem;
+}
+
 .input-rate {
     margin-left: 1rem;
     border-width: 0;
