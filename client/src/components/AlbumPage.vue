@@ -26,10 +26,10 @@
                   </div>
                   <div v-if="isAuth && alreadyLiked" class="rate-div" id="rate-div">
                     <i class="fa-solid fa-star"></i>
-                    <input type="number" min="0" max="20" step="0.5" placeholder="0" id="input-rate" class="text-center input-rate" v-model="rate" @input="rateChange"/>
+                    <input type="number" min="0" :max="params.limit" step="0.5" placeholder="0" id="input-rate" class="text-center input-rate" v-model="rate" @input="rateChange"/>
                     <span v-if="params.scale != 'empty'" class="span20">{{params.scale}}</span>
                   </div>
-                  <div class="rate-friends">
+                  <div v-if="isAuth" class="rate-friends">
                       <p id="rate-friend-p">Rate of your friends</p>
                       <div class="list-friends" id="friend-with">
             
@@ -101,6 +101,15 @@ export default {
         .then(response => {
           if(response.data.params != undefined && response.data.params != null){
             this.params = response.data.params;
+            if(this.params.scale != null){
+              if(this.params.scale == 'empty'){
+                this.params.limit = null;
+              } else {
+                const scaleValue = this.params.scale.split(" ")[1];
+                const scaleValueNb = Number(scaleValue);
+                this.params.limit = scaleValueNb;
+              }
+            }
           }
           if(response.data.message == 0){
             this.alreadyToListen = true;
@@ -137,7 +146,8 @@ export default {
         })
         .catch(error => {
         if(error != null){
-            this.$router.push('/logout') 
+            //this.$router.push('/logout') 
+            console.log(error)
           }
         });
     },
