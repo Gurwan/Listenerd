@@ -190,7 +190,11 @@ export default {
           friendsWithList.forEach(function(user) {
             var li = document.createElement("li");
             var a = document.createElement("a");
-            a.textContent = user[0];
+            if(user[0].length > 10){
+              a.textContent = user[0].substring(0, 10);
+            } else {
+              a.textContent = user[0];
+            }
             a.href = '/user/' + user[0]
             var img = document.createElement("img");
             if(user[1] != null){

@@ -400,18 +400,22 @@ app.get('/artist', async (req, res) => {
  */
 app.post('/user', async (req,res) => {
   const {username, password} = req.body;
-  const resController = await userController.register(username,password);
-  if(resController[0]){
-    jwt.sign({user:{id: resController[1]}},'listenerd_secret_key',
-    {expiresIn: 7200}, (err, token) => {
-     //if(err) throw err;
-     res.status(201).json({ token })
-    })
+  if(username == null || password == null){
+    res.status(422).json({msg:"Missing username or password"});
   } else {
-    if(resController[1] == 400){
-      res.status(400).json({msg: 'Username already taken'});
+    const resController = await userController.register(username,password);
+    if(resController[0]){
+      jwt.sign({user:{id: resController[1]}},'listenerd_secret_key',
+      {expiresIn: 7200}, (err, token) => {
+       //if(err) throw err;
+       res.status(201).json({ token })
+      })
     } else {
-      res.status(500).send("Server error")
+      if(resController[1] == 400){
+        res.status(400).json({msg: 'Username already taken'});
+      } else {
+        res.status(500).send("Server error")
+      }
     }
   }
 });
@@ -422,20 +426,24 @@ app.post('/user', async (req,res) => {
  */
 app.post('/login', async (req,res) => {
   const {username, password} = req.body;
-  const resController = await userController.login(username,password);
-  if(resController[0]){
-    jwt.sign({username: resController[1]},'listenerd_secret_key',
-    {expiresIn: 7200}, (err, token) => {
-     if(err) throw err;
-     res.json({token});
-    })
+  if(username == null || password == null){
+    res.status(400).json({msg: 'Username does not exist'});
   } else {
-    if(resController[1] == 400){
-      res.status(400).json({msg: 'Username does not exist'});
-    } else if (resController[1] == 401){
-      res.status(401).json({msg: 'Wrong password'});
+    const resController = await userController.login(username,password);
+    if(resController[0]){
+      jwt.sign({username: resController[1]},'listenerd_secret_key',
+      {expiresIn: 7200}, (err, token) => {
+       if(err) throw err;
+       res.json({token});
+      })
     } else {
-      res.status(500).send("Server error")
+      if(resController[1] == 400){
+        res.status(400).json({msg: 'Username does not exist'});
+      } else if (resController[1] == 401){
+        res.status(401).json({msg: 'Wrong password'});
+      } else {
+        res.status(500).send("Server error")
+      }
     }
   }
 });
