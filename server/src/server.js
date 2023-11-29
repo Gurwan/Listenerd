@@ -6,6 +6,7 @@ const querystring = require('querystring');
 const cors = require('cors'); 
 const jwt = require('jsonwebtoken');
 const app = express();
+const middleware_morgan = require('./log-config');
 const { MongoClient, ObjectId } = require('mongodb');
 const port = 3001;
 const UserController = require('../controllers/UserController');
@@ -14,6 +15,7 @@ const ArtistController = require('../controllers/ArtistController');
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
+app.use(middleware_morgan);
 
 const uri = "mongodb://localhost:27017";
 const client = new MongoClient(uri);
