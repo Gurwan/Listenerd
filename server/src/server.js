@@ -5,6 +5,7 @@ const config = require('../../config/config')
 const querystring = require('querystring');
 const cors = require('cors'); 
 const jwt = require('jsonwebtoken');
+const xss = require('xss');
 const app = express();
 const middleware_morgan = require('./log-config');
 const { MongoClient, ObjectId } = require('mongodb');
@@ -217,6 +218,7 @@ app.get('/search', async (req, res) => {
     accessTokenSpotify = await getSpotifyAccessToken();
   }
   let field = req.query.field;
+  field = xss(field);
   if(field == 'album'){
     axios.get(`https://api.spotify.com/v1/search?q=${req.query.search}&type=album&limit=${req.query.limit}`, {
       headers: {
@@ -401,7 +403,9 @@ app.get('/artist', async (req, res) => {
  * Use register method from UserController
  */
 app.post('/user', async (req,res) => {
-  const {username, password} = req.body;
+  let {username, password} = req.body;
+  username = xss(username);
+  password = xss(password); 
   if(username == null || password == null){
     res.status(422).json({msg:"Missing username or password"});
   } else {
@@ -427,7 +431,9 @@ app.post('/user', async (req,res) => {
  * Use login method from UserController
  */
 app.post('/login', async (req,res) => {
-  const {username, password} = req.body;
+  let {username, password} = req.body;
+  username = xss(username);
+  password = xss(password);
   if(username == null || password == null){
     res.status(400).json({msg: 'Username does not exist'});
   } else {
@@ -516,7 +522,8 @@ app.get('/username', authUser, async (req, res) => {
  * GET REST method allowing to get user information to display the user profile page for other users
  */
 app.get('/user-public', async (req, res) => {
-  const username = req.query.username;
+  let username = req.query.username;
+  username = xss(username);
   const resControllerUser = await userController.getUserData(username,albumController,artistController);
   if(resControllerUser[0]){
     const user = resControllerUser[1];
@@ -531,7 +538,8 @@ app.get('/user-public', async (req, res) => {
  * DELETE REST method allowing to delete a user account
  */
 app.delete('/user', authUser, async (req, res) => {
-  const username = req.user.username;
+  let username = req.user.username;
+  username = xss(username);
   const resControllerUser = await userController.deleteUser(username);
   const resControllerParams = await userController.deleteUserParams(username);
   if(resControllerUser[0]){
@@ -564,7 +572,8 @@ app.get('/list', authUser, async (req, res) => {
  * Get content of a user list among liked, to listen and followed artists lists
  */
 app.get('/user-list', authUser, async (req, res) => {
-  const username = req.query.user;
+  let username = req.query.user;
+  username = xss(username);
   const list = req.query.list;
   const accessTokenSpotify = await getSpotifyAccessToken();
   const resUserController = await userController.getUserList(username,list,artistController,albumController,accessTokenSpotify);
