@@ -23,13 +23,14 @@
         </div>
       </div>
       <div class="grid-list">
-        <div v-for="data in sortAndFilterAlbumsList" :key="data[0]" class="p-4 flex flex-col items-center">
+        <div v-for="(data,indexForRating) in sortAndFilterAlbumsList" :key="data[0]" class="p-4 flex flex-col items-center">
           <router-link :to="'/album/' + data[0]" >
             <img :src="data[3]" alt="Image" class="max-w-full h-auto w-64 md:w-48 lg:w-32 xl:w-24 mb-2 mx-auto"> 
             <p class="font-bold">{{ data[1] }}</p>
             <p class="text-gray-600">{{ data[2][1] }} - {{ data[4] }}</p>
             <p v-if="data[5] != -1 && params.scale != 'empty'" class="font-bold rate-value-id">{{ data[5] }} {{ params.scale }}</p>
             <p v-if="data[5] != -1 && params.scale == 'empty'" class="font-bold rate-value-id">{{ data[5] }}</p>
+            <p class="italic font-bold" v-if="sort.by == 5 && sort.order == 'desc'">{{ indexForRating+1 }}/{{ sortAndFilterAlbumsList.length }}</p>
           </router-link>
           <div v-if="listButton">
               <a class="text-white hover:text-blue-300 aList" href="#" @click="addAlbumToList(data,0)">
