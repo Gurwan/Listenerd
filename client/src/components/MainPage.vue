@@ -71,6 +71,27 @@
         </div>
       </div>
     </div>
+    <div class="pagination-div" v-if="searchText != '' && searchField != null && userValues.length < 1">
+      <!-- pagination extract from the Tailwind CSS website and modified to suit with the webapp-->
+      <ul class="flex items-center -space-x-px h-8 text-sm">
+        <li>
+          <a href="#" @click="changeNumberPage(-1)" class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-r-0 border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+            <span class="sr-only">Previous</span>
+            <svg class="w-2.5 h-2.5 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 1 1 5l4 4"/>
+            </svg>
+          </a>
+        </li>
+        <li>
+          <a href="#" @click="changeNumberPage(1)" class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-l-0 border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+            <span class="sr-only">Next</span>
+            <svg class="w-2.5 h-2.5 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+            </svg>
+          </a>
+        </li>
+      </ul>
+    </div>
   </div>
 </template>
 
@@ -88,9 +109,11 @@ export default {
       artistValues: [],
       userValues: [],
       searchText: '',
+      searchField: null,
       isAuth: false,
       usernameConnected: null,
       instantResult: [],
+      page: 1,
     };
   },
   created(){
@@ -102,8 +125,18 @@ export default {
     }
   },
   methods: {
+    changeNumberPage(n){
+      if(this.page + n > 0 && this.page + n < 21){
+        this.page = this.page + n;
+      }
+      this.searchAlbumsArtists(this.searchText,this.searchField);
+    },
     searchAlbumsArtists(searchText,searchField) {
-      axios.get(`http://localhost:3001/search?search=${searchText}&field=${searchField}&limit=50`)
+      const offset_pagination = (this.page-1) * 50; 
+      this.searchField = searchField;
+      this.searchText = searchText;
+      console.log(offset_pagination)
+      axios.get(`http://localhost:3001/search?search=${searchText}&field=${searchField}&offset=${offset_pagination}&limit=50`)
         .then((response) => {
           if(response.data.field == 'album'){
             this.refreshData(response.data.arrayAlbum)

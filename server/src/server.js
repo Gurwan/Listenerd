@@ -220,7 +220,7 @@ app.get('/search', async (req, res) => {
   let field = req.query.field;
   field = xss(field);
   if(field == 'album'){
-    axios.get(`https://api.spotify.com/v1/search?q=${req.query.search}&type=album&limit=${req.query.limit}`, {
+    axios.get(`https://api.spotify.com/v1/search?q=${req.query.search}&type=album&limit=${req.query.limit}&offset=${req.query.offset}`, {
       headers: {
         Authorization: `Bearer ${accessTokenSpotify}`,
       },
@@ -233,7 +233,7 @@ app.get('/search', async (req, res) => {
       console.error('Spotify API error');
     });
   } else if(field == 'artist'){
-    axios.get(`https://api.spotify.com/v1/search?q=${req.query.search}&type=artist&limit=${req.query.limit}`, {
+    axios.get(`https://api.spotify.com/v1/search?q=${req.query.search}&type=artist&limit=${req.query.limit}&offset=${req.query.offset}`, {
       headers: {
         Authorization: `Bearer ${accessTokenSpotify}`,
       },

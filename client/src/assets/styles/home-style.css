@@ -4,7 +4,15 @@
     gap: 1rem;
 }
 
+.pagination-div {
+  justify-content: center;
+  display: flex;
+  margin-bottom: 1rem;
+}
 
+.pagination-div svg {
+  margin:0.5rem!important;
+}
 
 .img-artist {
   width: 16rem;
