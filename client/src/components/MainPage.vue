@@ -135,7 +135,6 @@ export default {
       const offset_pagination = (this.page-1) * 50; 
       this.searchField = searchField;
       this.searchText = searchText;
-      console.log(offset_pagination)
       axios.get(`http://localhost:3001/search?search=${searchText}&field=${searchField}&offset=${offset_pagination}&limit=50`)
         .then((response) => {
           if(response.data.field == 'album'){

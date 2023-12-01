@@ -86,6 +86,7 @@ class AlbumController {
             if(albumAlreadyExists){
                 return [true,albumData[0]]
             } else {
+                console.log(albumData)
                 const resArtistController = await artistController.addArtist(albumData[2][0],albumData[2][1],null,null);
                 if(resArtistController[0]){
                     const albumObject = new Album(albumData[0],albumData[1],albumData[2][0],albumData[4],albumData[3]);

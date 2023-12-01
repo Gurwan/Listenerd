@@ -13,8 +13,8 @@
         </div>
         <div class="sortby-div">
           <p>SORT BY</p>
-          <button class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center" @click="sortBy(1)">Title</button>
-          <button class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center" @click="sortBy(4)">Release date</button>
+          <button id="button_sort_title" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center" @click="sortBy(1)">Title</button>
+          <button id="button_sort_releasedate" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center" @click="sortBy(4)">Release date</button>
         </div>
         <div class="hide-div">
           <p id="hide-p">SHOW</p>
@@ -136,6 +136,19 @@ methods: {
       });
     },
     sortBy(arg){
+      let titleButton = document.getElementById("button_sort_title");
+      let releaseDateButton = document.getElementById("button_sort_releasedate");
+      if(arg == 1){
+        titleButton.style.backgroundColor = "red";
+        titleButton.style.color = "white";
+        releaseDateButton.style.backgroundColor = "rgb(209, 213, 219)";
+        releaseDateButton.style.color = "rgb(31, 41, 55)";
+      } else {
+        releaseDateButton.style.backgroundColor = "red";
+        releaseDateButton.style.color = "white";
+        titleButton.style.backgroundColor = "rgb(209, 213, 219)";
+        titleButton.style.color = "rgb(31, 41, 55)";
+      }
       if(arg == this.sort.by){
         if(this.sort.order == 'asc'){
           this.sort.order = 'desc';
