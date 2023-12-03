@@ -17,6 +17,7 @@ And run the command: mongorestore --db Listenerd ./dump_listenerd/
 In this database dump, you can use the following user accounts:
 - Username: Gurwan, password: azerty
 - Username: Jonathan, password: azerty123
+
 The Gurwan account contains all my data, with just over 100 albums in the Liked albums list.
 The Jonathan account is a little emptier, allowing you to quickly test the features.
 
