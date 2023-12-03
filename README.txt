@@ -4,6 +4,7 @@ First, go to the project root (Listenerd) and install the dependencies with the 
 You can do the same thing by going to the client folder and installing the dependencies with the command: npm install
 
 Once this has been done, you can return to the project root and launch the web application and REST API server with the command: npm start
+The web application is then accessible on localhost:8080 by default.
 You can also launch mongodb in a terminal with the command: mongod.
 
 A database dump is available in the root folder, named dump_listenerd.

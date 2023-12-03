@@ -8,6 +8,9 @@ First, go to the project root (Listenerd) and install the dependencies with the 
 You can do the same thing by going to the client folder and installing the dependencies with the command: npm install
 
 Once this has been done, you can return to the project root and launch the web application and REST API server with the command: npm start
+
+The web application is then accessible on localhost:8080 by default.
+
 You can also launch mongodb in a terminal with the command: mongod.
 
 A database dump is available in the root folder, named dump_listenerd.
@@ -19,6 +22,7 @@ In this database dump, you can use the following user accounts:
 - Username: Jonathan, password: azerty123
 
 The Gurwan account contains all my data, with just over 100 albums in the Liked albums list.
+
 The Jonathan account is a little emptier, allowing you to quickly test the features.
 
 First class diagram of the model :
