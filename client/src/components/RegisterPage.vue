@@ -69,7 +69,7 @@ export default {
             this.errorMsg = 'The password must contain at least 8 characters';
           }
         } else {
-          this. errorMsg = 'Both passwords must be identical';
+          this.errorMsg = 'Both passwords must be identical';
         }
       } else {
         this.errorMsg = 'The username must contain at least 4 characters';

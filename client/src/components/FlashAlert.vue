@@ -2,7 +2,7 @@
     <div v-if="flashMessage">
       <p id="message-p">{{ flashMessage }}</p>
     </div>
-  </template>
+</template>
   
   <script>
   export default {
